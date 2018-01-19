@@ -19,10 +19,13 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.strandls.naksha.es.models.MapBoolQuery;
 import com.strandls.naksha.es.models.MapDocument;
-import com.strandls.naksha.es.models.MapRangeQuery;
 import com.strandls.naksha.es.models.MapResponse;
+import com.strandls.naksha.es.models.MapSortType;
+import com.strandls.naksha.es.models.query.MapBoolQuery;
+import com.strandls.naksha.es.models.query.MapRangeQuery;
+import com.strandls.naksha.es.models.query.MapSearchQuery;
+import com.strandls.naksha.es.models.MapQueryResponse;
 import com.strandls.naksha.es.services.api.ElasticAdminSearchService;
 import com.strandls.naksha.es.services.api.ElasticSearchService;
 import com.strandls.naksha.es.services.impl.ElasticAdminSearchServiceImpl;
@@ -43,7 +46,7 @@ public class NakshaController {
 	@Path("/data/{index}/{type}/{documentId}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public MapResponse create(@PathParam("index") String index,
+	public MapQueryResponse create(@PathParam("index") String index,
 			@PathParam("type") String type,
 			@PathParam("documentId") String documentId,
 			MapDocument document) {
@@ -83,21 +86,13 @@ public class NakshaController {
 	@Path("/data/{index}/{type}/{documentId}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public MapResponse update(@PathParam("index") String index,
+	public MapQueryResponse update(@PathParam("index") String index,
 			@PathParam("type") String type,
 			@PathParam("documentId") String documentId,
-			MapDocument document) {
-		
-		String docString = String.valueOf(document.getDocument());
-		try {
-			new ObjectMapper().readValue(docString, Map.class);
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new WebApplicationException(Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build());
-		}
+			Map<String, Object> document) {
 		
 		try {
-			return esService.update(index, type, documentId, docString);
+			return esService.update(index, type, documentId, document);
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
@@ -107,7 +102,7 @@ public class NakshaController {
 	@DELETE
 	@Path("/data/{index}/{type}/{documentId}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public MapResponse delete(@PathParam("index") String index,
+	public MapQueryResponse delete(@PathParam("index") String index,
 			@PathParam("type") String type,
 			@PathParam("documentId") String documentId) {
 		
@@ -120,11 +115,10 @@ public class NakshaController {
 		
 	}
 	
-	//TODO need to revisit this for improvement
 	@POST
 	@Path("/bulk-upload/{index}/{type}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<MapResponse> bulkUpload(@PathParam("index") String index,
+	public List<MapQueryResponse> bulkUpload(@PathParam("index") String index,
 			@PathParam("type") String type,
 			String jsonArray) {
 		
@@ -139,19 +133,24 @@ public class NakshaController {
 	@GET
 	@Path("/term-search/{index}/{type}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<MapDocument> search(@PathParam("index") String index,
+	public MapResponse search(@PathParam("index") String index,
 			@PathParam("type") String type,
 			@QueryParam("key") String key,
 			@QueryParam("value") String value,
 			@QueryParam("from") Integer from,
-			@QueryParam("limit") Integer limit) {
+			@QueryParam("limit") Integer limit,
+			@QueryParam("sortOn") String sortOn,
+			@QueryParam("sortType") MapSortType sortType,
+			@QueryParam("geoAggregationField") String geoAggregationField,
+			@QueryParam("geoAggegationPrecision") Integer geoAggegationPrecision) {
 		
 		if(key == null || value == null)
 			throw new WebApplicationException(Response.status(Status.BAD_REQUEST)
 					.entity("key or value not specified").build());
 		
 		try {
-			return esService.termSearch(index, type, key, value, from, limit);
+			return esService.termSearch(index, type, key, value, from, limit,
+					sortOn, sortType, geoAggregationField, geoAggegationPrecision);
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
@@ -162,14 +161,19 @@ public class NakshaController {
 	@Path("/terms-search/{index}/{type}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<MapDocument> boolSearch(@PathParam("index") String index,
+	public MapResponse boolSearch(@PathParam("index") String index,
 			@PathParam("type") String type,
 			@QueryParam("from") Integer from,
 			@QueryParam("limit") Integer limit,
+			@QueryParam("sortOn") String sortOn,
+			@QueryParam("sortType") MapSortType sortType,
+			@QueryParam("geoAggregationField") String geoAggregationField,
+			@QueryParam("geoAggegationPrecision") Integer geoAggegationPrecision,
 			List<MapBoolQuery> query) {
 		
 		try {
-			return esService.boolSearch(index, type, query, from, limit);
+			return esService.boolSearch(index, type, query, from, limit,
+					sortOn, sortType, geoAggregationField, geoAggegationPrecision);
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
@@ -180,14 +184,19 @@ public class NakshaController {
 	@Path("/range-search/{index}/{type}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<MapDocument> rangeSearch(@PathParam("index") String index,
+	public MapResponse rangeSearch(@PathParam("index") String index,
 			@PathParam("type") String type,
 			@QueryParam("from") Integer from,
 			@QueryParam("limit") Integer limit,
+			@QueryParam("sortOn") String sortOn,
+			@QueryParam("sortType") MapSortType sortType,
+			@QueryParam("geoAggregationField") String geoAggregationField,
+			@QueryParam("geoAggegationPrecision") Integer geoAggegationPrecision,
 			List<MapRangeQuery> query) {
 		
 		try {
-			return esService.rangeSearch(index, type, query, from, limit);
+			return esService.rangeSearch(index, type, query, from, limit,
+					sortOn, sortType, geoAggregationField, geoAggegationPrecision);
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
@@ -199,8 +208,8 @@ public class NakshaController {
 	@Produces(MediaType.APPLICATION_JSON)
 	public MapDocument geohashAggregation(@PathParam("index") String index,
 			@PathParam("type") String type,
-			@QueryParam("field") String field,
-			@QueryParam("precision") Integer precision) {
+			@QueryParam("geoAggregationField") String field,
+			@QueryParam("geoAggegationPrecision") Integer precision) {
 		
 		if(field == null || precision == null)
 			throw new WebApplicationException(Response.status(Status.BAD_REQUEST)
@@ -217,10 +226,33 @@ public class NakshaController {
 		}
 	}
 	
+	@POST
+	@Path("/search/{index}/{type}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public MapResponse search(@PathParam("index") String index,
+			@PathParam("type") String type,
+			@QueryParam("from") Integer from,
+			@QueryParam("limit") Integer limit,
+			@QueryParam("sortOn") String sortOn,
+			@QueryParam("sortType") MapSortType sortType,
+			@QueryParam("geoAggregationField") String geoAggregationField,
+			@QueryParam("geoAggegationPrecision") Integer geoAggegationPrecision,
+			MapSearchQuery query) {
+		
+		try {
+			return esService.search(index, type, query, from, limit,
+					sortOn, sortType, geoAggregationField, geoAggegationPrecision);
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
+		}
+	}
+	
 	//---------- Admin Services -------------
 	
 	@GET
-	@Path("/mapping/{index}/{type}")
+	@Path("/mapping/{index}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public MapDocument getMapping(@PathParam("index") String index) {
 		
@@ -233,16 +265,16 @@ public class NakshaController {
 	}
 	
 	@POST
-	@Path("/mapping/{index}/{type}")
+	@Path("/mapping/{index}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public MapResponse postMapping(@PathParam("index") String index,
-			@PathParam("type") String type, MapDocument mapping) {
+	public MapQueryResponse postMapping(@PathParam("index") String index,
+			MapDocument mapping) {
 
 		String docString = String.valueOf(mapping.getDocument());
 		
 		try {
-			return esAdminService.postMapping(index, type, docString);
+			return esAdminService.postMapping(index, docString);
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
@@ -252,7 +284,7 @@ public class NakshaController {
 	@POST
 	@Path("/index-admin/{index}/{type}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public MapResponse createIndex(@PathParam("index") String index,
+	public MapQueryResponse createIndex(@PathParam("index") String index,
 			@PathParam("type") String type) {
 		
 		try {

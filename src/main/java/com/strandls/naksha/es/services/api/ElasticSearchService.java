@@ -2,15 +2,18 @@ package com.strandls.naksha.es.services.api;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
-import com.strandls.naksha.es.models.MapBoolQuery;
 import com.strandls.naksha.es.models.MapDocument;
-import com.strandls.naksha.es.models.MapRangeQuery;
 import com.strandls.naksha.es.models.MapResponse;
-import com.strandls.naksha.es.models.MapSearchQuery;
+import com.strandls.naksha.es.models.MapQueryResponse;
+import com.strandls.naksha.es.models.MapSortType;
+import com.strandls.naksha.es.models.query.MapBoolQuery;
+import com.strandls.naksha.es.models.query.MapRangeQuery;
+import com.strandls.naksha.es.models.query.MapSearchQuery;
 
 /**
- * All the service(excluding admin services) supported by map app
+ * All search services supported by map app
  * 
  * @author mukund
  */
@@ -27,11 +30,11 @@ public interface ElasticSearchService {
 	 *            unique id of the document
 	 * @param document
 	 *            the json document to be added
-	 * @return {@link MapResponse} containing the status of the operation
+	 * @return {@link MapQueryResponse} containing the status of the operation
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
-	MapResponse create(String index, String type, String documentId, String document) throws IOException;
+	MapQueryResponse create(String index, String type, String documentId, String document) throws IOException;
 
 	/**
 	 * Fetches a document in es
@@ -58,12 +61,13 @@ public interface ElasticSearchService {
 	 * @param documentId
 	 *            unique id of the document
 	 * @param document
-	 *            the json document to be updated
-	 * @return {@link MapResponse} containing the status of the operation
+	 *            the document in the form of key-value pairs to be updated
+	 * @return {@link MapQueryResponse} containing the status of the operation
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
-	MapResponse update(String index, String type, String documentId, String document) throws IOException;
+	MapQueryResponse update(String index, String type, String documentId, Map<String, Object> document)
+			throws IOException;
 
 	/**
 	 * Deletes a document in es if it exists
@@ -74,11 +78,11 @@ public interface ElasticSearchService {
 	 *            the type of the document
 	 * @param documentId
 	 *            unique id of the document
-	 * @return {@link MapResponse} containing the status of the operation
+	 * @return {@link MapQueryResponse} containing the status of the operation
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
-	MapResponse delete(String index, String type, String documentId) throws IOException;
+	MapQueryResponse delete(String index, String type, String documentId) throws IOException;
 
 	/**
 	 * Bulk upload the the documents in the form of json array
@@ -89,11 +93,11 @@ public interface ElasticSearchService {
 	 *            the type of the documents
 	 * @param jsonArray
 	 *            the json array of documents needed to be uploaded
-	 * @return list of {@link MapResponse} for individual json documents
+	 * @return list of {@link MapQueryResponse} for individual json documents
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
-	List<MapResponse> bulkUpload(String index, String type, String jsonArray) throws IOException;
+	List<MapQueryResponse> bulkUpload(String index, String type, String jsonArray) throws IOException;
 
 	/**
 	 * Search for a particular key value pair
@@ -110,11 +114,21 @@ public interface ElasticSearchService {
 	 *            optional
 	 * @param limit
 	 *            optional
-	 * @return list of {@link MapDocument}
+	 * @param sortOn
+	 *            the field on which sorting is required
+	 * @param sortType
+	 *            {@link MapSortType} the type of sorting which is required, default
+	 *            is descending
+	 * @param geoAggregationField
+	 *            the geo_point field on which geohash aggregation is required
+	 * @param geoAggegationPrecision
+	 *            the precision for geohash aggregation, default is 1
+	 * @return {@link MapResponse}
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
-	List<MapDocument> termSearch(String index, String type, String key, String value, Integer from, Integer limit)
+	MapResponse termSearch(String index, String type, String key, String value, Integer from, Integer limit,
+			String sortOn, MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision)
 			throws IOException;
 
 	/**
@@ -131,11 +145,21 @@ public interface ElasticSearchService {
 	 *            optional
 	 * @param limit
 	 *            optional
-	 * @return list of {@link MapDocument}
+	 * @param sortOn
+	 *            the field on which sorting is required
+	 * @param sortType
+	 *            {@link MapSortType} the type of sorting which is required, default
+	 *            is descending
+	 * @param geoAggregationField
+	 *            the geo_point field on which geohash aggregation is required
+	 * @param geoAggegationPrecision
+	 *            the precision for geohash aggregation, default is 1
+	 * @return {@link MapResponse}
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
-	List<MapDocument> boolSearch(String index, String type, List<MapBoolQuery> queries, Integer from, Integer limit)
+	MapResponse boolSearch(String index, String type, List<MapBoolQuery> queries, Integer from, Integer limit,
+			String sortOn, MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision)
 			throws IOException;
 
 	/**
@@ -152,11 +176,21 @@ public interface ElasticSearchService {
 	 *            optional
 	 * @param limit
 	 *            optional
-	 * @return list of {@link MapDocument}
+	 * @param sortOn
+	 *            the field on which sorting is required
+	 * @param sortType
+	 *            {@link MapSortType} the type of sorting which is required, default
+	 *            is descending
+	 * @param geoAggregationField
+	 *            the geo_point field on which geohash aggregation is required
+	 * @param geoAggegationPrecision
+	 *            the precision for geohash aggregation, default is 1
+	 * @return {@link MapResponse}
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
-	List<MapDocument> rangeSearch(String index, String type, List<MapRangeQuery> queries, Integer from, Integer limit)
+	MapResponse rangeSearch(String index, String type, List<MapRangeQuery> queries, Integer from, Integer limit,
+			String sortOn, MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision)
 			throws IOException;
 
 	/**
@@ -172,12 +206,21 @@ public interface ElasticSearchService {
 	 *            optional
 	 * @param limit
 	 *            optional
-	 * @return list of {@link MapDocument}
+	 * @param sortOn
+	 *            the field on which sorting is required
+	 * @param sortType
+	 *            {@link MapSortType} the type of sorting which is required, default
+	 *            is descending
+	 * @param geoAggregationField
+	 *            the geo_point field on which geohash aggregation is required
+	 * @param geoAggegationPrecision
+	 *            the precision for geohash aggregation, default is 1
+	 * @return {@link MapResponse}
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
-	List<MapDocument> search(String index, String type, MapSearchQuery query, Integer from, Integer limit)
-			throws IOException;
+	MapResponse search(String index, String type, MapSearchQuery query, Integer from, Integer limit, String sortOn,
+			MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision) throws IOException;
 
 	/**
 	 * Geohash aggregation search on a geo_point field.

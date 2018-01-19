@@ -18,6 +18,7 @@ public class NakshaApplication extends Application {
 	public Set<Class<?>> getClasses() {
 		Set<Class<?>> classes = new HashSet<Class<?>>();
 		classes.add(com.strandls.naksha.controllers.NakshaController.class);
+		classes.add(com.strandls.naksha.controllers.BinningController.class);
 		classes.add(NakshaResponseFilter.class);
 		return classes;
 	}

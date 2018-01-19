@@ -3,7 +3,7 @@ package com.strandls.naksha.es.services.api;
 import java.io.IOException;
 
 import com.strandls.naksha.es.models.MapDocument;
-import com.strandls.naksha.es.models.MapResponse;
+import com.strandls.naksha.es.models.MapQueryResponse;
 
 /**
  * All the admin serviecs supported by map app
@@ -17,14 +17,12 @@ public interface ElasticAdminSearchService {
 	 * 
 	 * @param index
 	 *            the index on which mapping needs to be defined
-	 * @param type
-	 *            the type on which mapping needs to be defined
 	 * @param mapping
 	 *            the mapping
-	 * @return {@link MapResponse}
+	 * @return {@link MapQueryResponse}
 	 * @throws IOException throws {@link IOException}
 	 */
-	MapResponse postMapping(String index, String type, String mapping) throws IOException;
+	MapQueryResponse postMapping(String index, String mapping) throws IOException;
 
 	/**
 	 * Get the mapping for an index
@@ -43,9 +41,9 @@ public interface ElasticAdminSearchService {
 	 *            the index to be created
 	 * @param type
 	 *            the type to be created
-	 * @return {@link MapResponse}
+	 * @return {@link MapQueryResponse}
 	 * @throws IOException throws {@link IOException}
 	 */
-	MapResponse createIndex(String index, String type) throws IOException;
+	MapQueryResponse createIndex(String index, String type) throws IOException;
 
 }
