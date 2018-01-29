@@ -23,6 +23,7 @@ import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.GeoBoundingBoxQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -41,6 +42,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.strandls.naksha.es.ESClientProvider;
 import com.strandls.naksha.es.ElasticSearchClient;
+import com.strandls.naksha.es.models.MapBounds;
 import com.strandls.naksha.es.models.MapDocument;
 import com.strandls.naksha.es.models.MapQueryResponse;
 import com.strandls.naksha.es.models.MapQueryStatus;
@@ -66,7 +68,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.strandls.naksha.es.services.api.ElasticSearchService#create(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+	 * 
+	 * @see
+	 * com.strandls.naksha.es.services.api.ElasticSearchService#create(java.lang.
+	 * String, java.lang.String, java.lang.String, java.lang.String)
 	 */
 	@Override
 	public MapQueryResponse create(String index, String type, String documentId, String document) throws IOException {
@@ -98,7 +103,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.strandls.naksha.es.services.api.ElasticSearchService#fetch(java.lang.String, java.lang.String, java.lang.String)
+	 * 
+	 * @see
+	 * com.strandls.naksha.es.services.api.ElasticSearchService#fetch(java.lang.
+	 * String, java.lang.String, java.lang.String)
 	 */
 	@Override
 	public MapDocument fetch(String index, String type, String documentId) throws IOException {
@@ -116,10 +124,14 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.strandls.naksha.es.services.api.ElasticSearchService#update(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+	 * 
+	 * @see
+	 * com.strandls.naksha.es.services.api.ElasticSearchService#update(java.lang.
+	 * String, java.lang.String, java.lang.String, java.lang.String)
 	 */
 	@Override
-	public MapQueryResponse update(String index, String type, String documentId, Map<String, Object> document) throws IOException {
+	public MapQueryResponse update(String index, String type, String documentId, Map<String, Object> document)
+			throws IOException {
 
 		logger.info("Trying to update index: {}, type: {} & id: {}", index, type, documentId);
 
@@ -147,7 +159,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.strandls.naksha.es.services.api.ElasticSearchService#delete(java.lang.String, java.lang.String, java.lang.String)
+	 * 
+	 * @see
+	 * com.strandls.naksha.es.services.api.ElasticSearchService#delete(java.lang.
+	 * String, java.lang.String, java.lang.String)
 	 */
 	@Override
 	public MapQueryResponse delete(String index, String type, String documentId) throws IOException {
@@ -178,7 +193,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.strandls.naksha.es.services.api.ElasticSearchService#bulkUpload(java.lang.String, java.lang.String, java.lang.String)
+	 * 
+	 * @see
+	 * com.strandls.naksha.es.services.api.ElasticSearchService#bulkUpload(java.lang
+	 * .String, java.lang.String, java.lang.String)
 	 */
 	@Override
 	public List<MapQueryResponse> bulkUpload(String index, String type, String jsonArray) throws IOException {
@@ -261,16 +279,16 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 		if (limit != null)
 			sourceBuilder.size(limit);
 
-		if(sortOn != null) {
+		if (sortOn != null) {
 			SortOrder sortOrder = sortType != null && MapSortType.ASC == sortType ? SortOrder.ASC : SortOrder.DESC;
 			sourceBuilder.sort(sortOn, sortOrder);
 		}
-		
-		if(geoAggregationField != null) {
+
+		if (geoAggregationField != null) {
 			geoAggegationPrecision = geoAggegationPrecision != null ? geoAggegationPrecision : 1;
 			sourceBuilder.aggregation(getGeoGridAggregationBuilder(geoAggregationField, geoAggegationPrecision));
 		}
-		
+
 		SearchRequest searchRequest = new SearchRequest(index);
 		searchRequest.types(type);
 		searchRequest.source(sourceBuilder);
@@ -280,69 +298,86 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 		List<MapDocument> result = new ArrayList<>();
 
 		long totalHits = searchResponse.getHits().getTotalHits();
-				
+
 		for (SearchHit hit : searchResponse.getHits().getHits())
 			result.add(new MapDocument(hit.getSourceAsString()));
 
 		logger.info("Search completed with total hits: {}", totalHits);
-		
+
 		String aggregationString = null;
-		if(geoAggregationField != null) {
+		if (geoAggregationField != null) {
 			Aggregation aggregation = searchResponse.getAggregations().asList().get(0);
 			aggregationString = XContentHelper.toString(aggregation);
 			logger.info("Aggregation search: {} completed", aggregation.getName());
 		}
-		
+
 		return new MapResponse(result, totalHits, aggregationString);
 
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.strandls.naksha.es.services.api.ElasticSearchService#termSearch(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.Integer, java.lang.Integer)
+	 * 
+	 * @see
+	 * com.strandls.naksha.es.services.api.ElasticSearchService#termSearch(java.lang
+	 * .String, java.lang.String, java.lang.String, java.lang.String,
+	 * java.lang.Integer, java.lang.Integer)
 	 */
 	@Override
-	public MapResponse termSearch(String index, String type, String key, String value, Integer from,
-			Integer limit, String sortOn, MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision) throws IOException {
+	public MapResponse termSearch(String index, String type, String key, String value, Integer from, Integer limit,
+			String sortOn, MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision)
+			throws IOException {
 
 		logger.info("Term search for index: {}, type: {}, key: {}, value: {}", index, type, key, value);
 		QueryBuilder query = QueryBuilders.termQuery(key, value);
-		if(value != null)
+		if (value != null)
 			query = QueryBuilders.termQuery(key, value);
 		else
 			query = QueryBuilders.boolQuery().mustNot(QueryBuilders.existsQuery(key));
-		
-		return querySearch(index, type, query, from, limit, sortOn, sortType, geoAggregationField, geoAggegationPrecision);
+
+		return querySearch(index, type, query, from, limit, sortOn, sortType, geoAggregationField,
+				geoAggegationPrecision);
 
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.strandls.naksha.es.services.api.ElasticSearchService#boolSearch(java.lang.String, java.lang.String, java.util.List, java.lang.Integer, java.lang.Integer)
+	 * 
+	 * @see
+	 * com.strandls.naksha.es.services.api.ElasticSearchService#boolSearch(java.lang
+	 * .String, java.lang.String, java.util.List, java.lang.Integer,
+	 * java.lang.Integer)
 	 */
 	@Override
-	public MapResponse boolSearch(String index, String type, List<MapBoolQuery> queries, Integer from,
-			Integer limit, String sortOn, MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision) throws IOException {
+	public MapResponse boolSearch(String index, String type, List<MapBoolQuery> queries, Integer from, Integer limit,
+			String sortOn, MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision)
+			throws IOException {
 
 		logger.info("Bool search for index: {}, type: {}", index, type);
 		BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
 		for (MapBoolQuery query : queries) {
-			if(query.getValues() != null)
+			if (query.getValues() != null)
 				boolQuery.must(QueryBuilders.termsQuery(query.getKey(), query.getValues()));
 			else
 				boolQuery.mustNot(QueryBuilders.existsQuery(query.getKey()));
 		}
 
-		return querySearch(index, type, boolQuery, from, limit, sortOn, sortType, geoAggregationField, geoAggegationPrecision);
+		return querySearch(index, type, boolQuery, from, limit, sortOn, sortType, geoAggregationField,
+				geoAggegationPrecision);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.strandls.naksha.es.services.api.ElasticSearchService#rangeSearch(java.lang.String, java.lang.String, java.util.List, java.lang.Integer, java.lang.Integer)
+	 * 
+	 * @see
+	 * com.strandls.naksha.es.services.api.ElasticSearchService#rangeSearch(java.
+	 * lang.String, java.lang.String, java.util.List, java.lang.Integer,
+	 * java.lang.Integer)
 	 */
 	@Override
-	public MapResponse rangeSearch(String index, String type, List<MapRangeQuery> queries, Integer from,
-			Integer limit, String sortOn, MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision) throws IOException {
+	public MapResponse rangeSearch(String index, String type, List<MapRangeQuery> queries, Integer from, Integer limit,
+			String sortOn, MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision)
+			throws IOException {
 
 		logger.info("Range search for index: {}, type: {}", index, type);
 		BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
@@ -350,78 +385,104 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 			boolQuery.must(QueryBuilders.rangeQuery(query.getKey()).from(query.getStart()).to(query.getEnd()));
 		}
 
-		return querySearch(index, type, boolQuery, from, limit, sortOn, sortType, geoAggregationField, geoAggegationPrecision);
+		return querySearch(index, type, boolQuery, from, limit, sortOn, sortType, geoAggregationField,
+				geoAggegationPrecision);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.strandls.naksha.es.services.api.ElasticSearchService#search(java.lang.String, java.lang.String, com.strandls.naksha.es.models.MapSearchQuery, java.lang.Integer, java.lang.Integer)
+	 * 
+	 * @see
+	 * com.strandls.naksha.es.services.api.ElasticSearchService#search(java.lang.
+	 * String, java.lang.String, com.strandls.naksha.es.models.query.MapSearchQuery,
+	 * java.lang.Integer, java.lang.Integer, java.lang.String,
+	 * com.strandls.naksha.es.models.MapSortType, java.lang.String,
+	 * java.lang.Integer, java.lang.Boolean, com.strandls.naksha.es.models.MapBounds)
 	 */
 	@Override
-	public MapResponse search(String index, String type, MapSearchQuery searchQery, Integer from, Integer limit,
-			String sortOn, MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision)
-			throws IOException {
+	public MapResponse search(String index, String type, MapSearchQuery searchQuery, Integer from, Integer limit,
+			String sortOn, MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision,
+			Boolean onlyFilteredAggregation, MapBounds bounds) throws IOException {
 
 		logger.info("SEARCH for index: {}, type: {}", index, type);
 
 		BoolQueryBuilder masterBoolQuery = QueryBuilders.boolQuery();
 		BoolQueryBuilder boolQuery = null;
 
-		if(searchQery.getAndBoolQueries() != null) {
+		if (searchQuery != null && searchQuery.getAndBoolQueries() != null) {
 			boolQuery = QueryBuilders.boolQuery();
-			for (MapBoolQuery query : searchQery.getAndBoolQueries()) {
-				if(query.getValues() != null)
+			for (MapBoolQuery query : searchQuery.getAndBoolQueries()) {
+				if (query.getValues() != null)
 					boolQuery.must(QueryBuilders.termsQuery(query.getKey(), query.getValues()));
 				else
 					boolQuery.mustNot(QueryBuilders.existsQuery(query.getKey()));
 			}
 			masterBoolQuery.must(boolQuery);
 		}
-		
-		if(searchQery.getOrBoolQueries() != null) {
+
+		if (searchQuery != null && searchQuery.getOrBoolQueries() != null) {
 			boolQuery = QueryBuilders.boolQuery();
-			for (MapBoolQuery query : searchQery.getOrBoolQueries()) {
-				if(query.getValues() != null)
+			for (MapBoolQuery query : searchQuery.getOrBoolQueries()) {
+				if (query.getValues() != null)
 					boolQuery.should(QueryBuilders.termsQuery(query.getKey(), query.getValues()));
 				else
 					boolQuery.mustNot(QueryBuilders.existsQuery(query.getKey()));
 			}
 			masterBoolQuery.must(boolQuery);
 		}
-		
-		if(searchQery.getAndRangeQueries() != null) {
+
+		if (searchQuery != null && searchQuery.getAndRangeQueries() != null) {
 			boolQuery = QueryBuilders.boolQuery();
-			for (MapRangeQuery query : searchQery.getAndRangeQueries()) {
+			for (MapRangeQuery query : searchQuery.getAndRangeQueries()) {
 				boolQuery.must(QueryBuilders.rangeQuery(query.getKey()).from(query.getStart()).to(query.getEnd()));
 			}
 			masterBoolQuery.must(boolQuery);
 		}
-		
-		if(searchQery.getOrRangeQueries() != null) {
+
+		if (searchQuery != null && searchQuery.getOrRangeQueries() != null) {
 			boolQuery = QueryBuilders.boolQuery();
-			for (MapRangeQuery query : searchQery.getOrRangeQueries()) {
+			for (MapRangeQuery query : searchQuery.getOrRangeQueries()) {
 				boolQuery.should(QueryBuilders.rangeQuery(query.getKey()).from(query.getStart()).to(query.getEnd()));
 			}
 			masterBoolQuery.must(boolQuery);
 		}
-		
-		if(searchQery.getAndExistQueries() != null) {
+
+		if (searchQuery != null && searchQuery.getAndExistQueries() != null) {
 			boolQuery = QueryBuilders.boolQuery();
-			for(MapExistQuery query : searchQery.getAndExistQueries()) {
-				if(query.isExists())
+			for (MapExistQuery query : searchQuery.getAndExistQueries()) {
+				if (query.isExists())
 					boolQuery.must(QueryBuilders.existsQuery(query.getKey()));
 				else
 					boolQuery.mustNot(QueryBuilders.existsQuery(query.getKey()));
 			}
 			masterBoolQuery.must(boolQuery);
 		}
-		
-		return querySearch(index, type, masterBoolQuery, from, limit, sortOn, sortType, geoAggregationField, geoAggegationPrecision);
+
+		MapResponse mapResponse = null;
+		if(!onlyFilteredAggregation)
+			mapResponse = querySearch(index, type, masterBoolQuery, from, limit, sortOn, sortType,
+				geoAggregationField, geoAggegationPrecision);
+
+		if (bounds != null) {
+			GeoBoundingBoxQueryBuilder setCorners = QueryBuilders.geoBoundingBoxQuery(geoAggregationField)
+					.setCorners(bounds.getTop(), bounds.getLeft(), bounds.getBottom(), bounds.getRight());
+			masterBoolQuery.filter(setCorners);
+			MapResponse filteredMapResponse = querySearch(index, type, masterBoolQuery, from, limit, sortOn, sortType,
+					geoAggregationField, geoAggegationPrecision);
+			
+			mapResponse = onlyFilteredAggregation ? filteredMapResponse : mapResponse;
+			mapResponse.setViewFilteredGeohashAggregation(filteredMapResponse.getGeohashAggregation());
+		}
+
+		return mapResponse;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see com.strandls.naksha.es.services.api.ElasticSearchService#geohashAggregation(java.lang.String, java.lang.String, java.lang.String, java.lang.Integer)
+	 * 
+	 * @see
+	 * com.strandls.naksha.es.services.api.ElasticSearchService#geohashAggregation(
+	 * java.lang.String, java.lang.String, java.lang.String, java.lang.Integer)
 	 */
 	@Override
 	public MapDocument geohashAggregation(String index, String type, String field, Integer precision)
@@ -442,16 +503,16 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 		SearchRequest searchRequest = new SearchRequest(index);
 		searchRequest.types(type);
 		searchRequest.source(sourceBuilder);
-		
+
 		SearchResponse searchResponse = client.search(searchRequest);
-		
+
 		Aggregation aggregation = searchResponse.getAggregations().asList().get(0);
 		logger.info("Aggregation search: {} completed", aggregation.getName());
-		
+
 		return new MapDocument(XContentHelper.toString(aggregation));
 
 	}
-	
+
 	private GeoGridAggregationBuilder getGeoGridAggregationBuilder(String field, Integer precision) {
 		GeoGridAggregationBuilder geohashGrid = AggregationBuilders
 				.geohashGrid(field + "-" + String.valueOf(precision));

@@ -24,14 +24,26 @@ public class MapResponse {
 	
 	/**
 	 * Geographic aggregation of the result based on geohash.
+	 * Maximum buckets are 10000.
 	 */
 	private String geohashAggregation;
+	
+	/**
+	 * Geohash aggregation filtered by bounds of user screen provided.
+	 */
+	private String viewFilteredGeohashAggregation;
 
 	public MapResponse(List<MapDocument> documents, long totalDocuments, String geohashAggregation) {
+		this(documents, totalDocuments, geohashAggregation, null);
+	}
+	
+	public MapResponse(List<MapDocument> documents, long totalDocuments, String geohashAggregation,
+			String viewFilteredGeohashAggregation) {
 		super();
 		this.documents = documents;
 		this.totalDocuments = totalDocuments;
 		this.geohashAggregation = geohashAggregation;
+		this.viewFilteredGeohashAggregation = viewFilteredGeohashAggregation;
 	}
 
 	public List<MapDocument> getDocuments() {
@@ -58,4 +70,11 @@ public class MapResponse {
 		this.geohashAggregation = geohashAggregation;
 	} 
 	
+	public String getViewFilteredGeohashAggregation() {
+		return viewFilteredGeohashAggregation;
+	}
+	
+	public void setViewFilteredGeohashAggregation(String viewFilteredGeohashAggregation) {
+		this.viewFilteredGeohashAggregation = viewFilteredGeohashAggregation;
+	}
 }

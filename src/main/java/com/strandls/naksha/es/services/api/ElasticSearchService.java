@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import com.strandls.naksha.es.models.MapBounds;
 import com.strandls.naksha.es.models.MapDocument;
 import com.strandls.naksha.es.models.MapResponse;
 import com.strandls.naksha.es.models.MapQueryResponse;
@@ -215,12 +216,17 @@ public interface ElasticSearchService {
 	 *            the geo_point field on which geohash aggregation is required
 	 * @param geoAggegationPrecision
 	 *            the precision for geohash aggregation, default is 1
+	 * @param onlyFilteredAggregation
+	 *            if true give aggregation result only for the bounds specified
+	 * @param bounds
+	 *            the bounds in which the search is required
 	 * @return {@link MapResponse}
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
 	MapResponse search(String index, String type, MapSearchQuery query, Integer from, Integer limit, String sortOn,
-			MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision) throws IOException;
+			MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision,
+			Boolean onlyFilteredAggregation, MapBounds bounds) throws IOException;
 
 	/**
 	 * Geohash aggregation search on a geo_point field.

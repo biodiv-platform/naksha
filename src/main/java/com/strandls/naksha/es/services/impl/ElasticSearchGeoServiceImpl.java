@@ -34,7 +34,9 @@ public class ElasticSearchGeoServiceImpl implements ElasticSearchGeoService {
 		SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
 		sourceBuilder.query(query);
-
+		sourceBuilder.from(0);
+		sourceBuilder.size(5000);
+		
 		SearchRequest searchRequest = new SearchRequest(index);
 		searchRequest.types(type);
 		searchRequest.source(sourceBuilder);

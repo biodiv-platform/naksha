@@ -19,6 +19,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.strandls.naksha.es.models.MapBounds;
 import com.strandls.naksha.es.models.MapDocument;
 import com.strandls.naksha.es.models.MapResponse;
 import com.strandls.naksha.es.models.MapSortType;
@@ -238,11 +239,22 @@ public class NakshaController {
 			@QueryParam("sortType") MapSortType sortType,
 			@QueryParam("geoAggregationField") String geoAggregationField,
 			@QueryParam("geoAggegationPrecision") Integer geoAggegationPrecision,
+			@QueryParam("onlyFilteredAggregation") Boolean onlyFilteredAggregation,
+			@QueryParam("top") Double top,
+			@QueryParam("left") Double left,
+			@QueryParam("bottom") Double bottom,
+			@QueryParam("right") Double right,
 			MapSearchQuery query) {
 		
+		if(onlyFilteredAggregation == true &&
+				(top == null || bottom == null || left == null || right == null))
+			throw new WebApplicationException(Response.status(Status.BAD_REQUEST)
+					.entity("Bounds not specified for filtering").build());
+		
 		try {
-			return esService.search(index, type, query, from, limit,
-					sortOn, sortType, geoAggregationField, geoAggegationPrecision);
+			MapBounds bounds = new MapBounds(top, left, bottom, right);
+			return esService.search(index, type, query, from, limit, sortOn, sortType,
+					geoAggregationField, geoAggegationPrecision, onlyFilteredAggregation, bounds);
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
