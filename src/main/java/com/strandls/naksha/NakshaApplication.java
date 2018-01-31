@@ -20,6 +20,7 @@ public class NakshaApplication extends Application {
 		classes.add(com.strandls.naksha.controllers.NakshaController.class);
 		classes.add(com.strandls.naksha.controllers.BinningController.class);
 		classes.add(com.strandls.naksha.controllers.GeoController.class);
+		classes.add(com.strandls.naksha.controllers.GeoserverController.class);
 		classes.add(NakshaResponseFilter.class);
 		return classes;
 	}

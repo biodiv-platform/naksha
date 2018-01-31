@@ -46,5 +46,4 @@ public class GeoController {
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
 	}
-
 }

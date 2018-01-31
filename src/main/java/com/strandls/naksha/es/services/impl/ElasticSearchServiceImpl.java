@@ -459,7 +459,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 		}
 
 		MapResponse mapResponse = null;
-		if(!onlyFilteredAggregation)
+		if(onlyFilteredAggregation == null || onlyFilteredAggregation == false)
 			mapResponse = querySearch(index, type, masterBoolQuery, from, limit, sortOn, sortType,
 				geoAggregationField, geoAggegationPrecision);
 

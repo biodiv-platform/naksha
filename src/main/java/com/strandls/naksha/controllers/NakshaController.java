@@ -246,13 +246,17 @@ public class NakshaController {
 			@QueryParam("right") Double right,
 			MapSearchQuery query) {
 		
-		if(onlyFilteredAggregation == true &&
+		if(onlyFilteredAggregation != null && onlyFilteredAggregation == true &&
 				(top == null || bottom == null || left == null || right == null))
 			throw new WebApplicationException(Response.status(Status.BAD_REQUEST)
 					.entity("Bounds not specified for filtering").build());
 		
+		
+		MapBounds bounds = null;
+		if(top != null && left != null && bottom != null && right != null)
+			bounds = new MapBounds(top, left, bottom, right);
+		
 		try {
-			MapBounds bounds = new MapBounds(top, left, bottom, right);
 			return esService.search(index, type, query, from, limit, sortOn, sortType,
 					geoAggregationField, geoAggegationPrecision, onlyFilteredAggregation, bounds);
 		} catch (IOException e) {
