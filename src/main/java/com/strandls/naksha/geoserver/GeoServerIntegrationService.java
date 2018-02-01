@@ -15,11 +15,15 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.strandls.naksha.NakshaConfig;
+
 /**
  * Makes http get requests to geoserver
+ * 
  * @author mukund
  *
  */
@@ -33,16 +37,21 @@ public class GeoServerIntegrationService {
 	private HttpClientContext context;
 
 	/**
-	 * The connection manager for this session. Maintains a pool of connections
-	 * for the session.
+	 * The connection manager for this session. Maintains a pool of connections for
+	 * the session.
 	 */
 	private PoolingHttpClientConnectionManager manager;
 
 	/**
-	 * The maximum number of connections to maintain per route by the pooling
-	 * client manager
+	 * The maximum number of connections to maintain per route by the pooling client
+	 * manager
 	 */
 	private final int MAX_CONNECTIONS_PER_ROUTE = 5;
+
+	/**
+	 * Base url of geoserver
+	 */
+	private final String BASE_URL = NakshaConfig.getString("geoserver.url");
 
 	public GeoServerIntegrationService() {
 		initHttpConnection();
@@ -65,26 +74,31 @@ public class GeoServerIntegrationService {
 	 * @param data
 	 */
 
-	public HttpEntity getRequest(String uri, List<NameValuePair> params) {
-		
+	public String getRequest(String uri, List<NameValuePair> params) {
+
 		CloseableHttpResponse response = null;
-		
+		String stringResponse = null;
+
 		try {
-			
-			URIBuilder builder = new URIBuilder(uri);
-			builder.setParameters(params);
+
+			URIBuilder builder = new URIBuilder(BASE_URL + uri);
+			if (params != null)
+				builder.setParameters(params);
 			HttpGet request = new HttpGet(builder.build());
-			
+
 			CloseableHttpClient httpclient = HttpClients.createDefault();
 
 			try {
 				response = httpclient.execute(request, context);
-				return response.getEntity();
-				
+				HttpEntity entity = response.getEntity();
+				stringResponse = EntityUtils.toString(entity);
+				EntityUtils.consume(entity);
+
 			} catch (IOException e) {
+				e.printStackTrace();
 				logger.error("Error while trying to send request at URL {}", uri);
 			} finally {
-				if (response != null)
+				if (stringResponse != null)
 					HttpClientUtils.closeQuietly(response);
 			}
 		} catch (Exception e) {
@@ -92,7 +106,6 @@ public class GeoServerIntegrationService {
 			logger.error("Error while trying to send request at URL {}", uri);
 		}
 
-		return null;
+		return stringResponse;
 	}
-
 }
