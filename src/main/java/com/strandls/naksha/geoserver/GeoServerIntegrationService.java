@@ -68,12 +68,11 @@ public class GeoServerIntegrationService {
 	}
 
 	/**
-	 * Post request to given url
-	 * 
-	 * @param uri
-	 * @param data
+	 * Makes http get request to geoserver
+	 * @param uri the uri to hit
+	 * @param params the parameters with the url
+	 * @return Response string
 	 */
-
 	public String getRequest(String uri, List<NameValuePair> params) {
 
 		CloseableHttpResponse response = null;

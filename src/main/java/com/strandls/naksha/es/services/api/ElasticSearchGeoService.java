@@ -30,7 +30,7 @@ public interface ElasticSearchGeoService {
 	 * @param right
 	 *            the right boundary
 	 * @return {@link MapResponse}
-	 * @throws IOException
+	 * @throws IOException @{@link IOException}
 	 */
 	MapResponse getGeoWithinDocuments(String index, String type, String geoField, double top, double left,
 			double bottom, double right) throws IOException;

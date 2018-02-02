@@ -55,4 +55,28 @@ public class GeoserverController {
 		return service.getRequest(url, null);
 	}
 
+	@GET
+	@Path("/thumbnails/{id}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String fetchThumbnail(@PathParam("id") String id) {
+		String url = "www/map_thumbnails/" + id;
+		service.getRequest(url, null);
+		return null;
+	}
+	
+	@GET
+	@Path("/gwc/service/tms/1.0.0/{workspace}/{layer}/{projection}/{z}/{x}/{y}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String fetchTiles(@PathParam("workspace") String workspace,
+			@PathParam("layer") String layer,
+			@PathParam("projection") String projection,
+			@PathParam("z") double z,
+			@PathParam("x") double x,
+			@PathParam("y") double y) {
+		
+		String url = "gwc/service/tms/1.0.0/" + workspace + ":" + layer + "@" + projection + "@pbf/" + z + "/" + x + "/" + y + ".pbf";
+		service.getRequest(url, null);
+		return null;
+	}
+	
 }
