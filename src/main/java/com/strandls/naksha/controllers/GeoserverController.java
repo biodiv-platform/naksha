@@ -66,17 +66,17 @@ public class GeoserverController {
 	
 	@GET
 	@Path("/gwc/service/tms/1.0.0/{workspace}/{layer}/{projection}/{z}/{x}/{y}")
-	@Produces(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.TEXT_PLAIN)
 	public String fetchTiles(@PathParam("workspace") String workspace,
 			@PathParam("layer") String layer,
 			@PathParam("projection") String projection,
-			@PathParam("z") double z,
-			@PathParam("x") double x,
-			@PathParam("y") double y) {
-		
-		String url = "gwc/service/tms/1.0.0/" + workspace + ":" + layer + "@" + projection + "@pbf/" + z + "/" + x + "/" + y + ".pbf";
-		service.getRequest(url, null);
-		return null;
+			@PathParam("z") String z,
+			@PathParam("x") String x,
+			@PathParam("y") String y) {
+			
+		String url = "gwc/service/tms/1.0.0/" + workspace + ":" + layer + "@EPSG%3A900913@pbf/" + z + "/" + x + "/" + y + ".pbf";
+		return service.getRequest(url, null);
+		//return null;
 	}
 	
 }
