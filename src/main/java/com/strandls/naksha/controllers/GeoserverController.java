@@ -19,7 +19,7 @@ import com.strandls.naksha.utils.Utils;
 
 /**
  * Controller for geoserver related queries
- * 
+ *
  * @author mukund
  *
  */
@@ -80,7 +80,7 @@ public class GeoserverController {
 
 		String url = "gwc/service/tms/1.0.0/" + workspace + ":" + layer + "@EPSG%3A900913@pbf/" + z + "/" + x + "/" + y
 				+ ".pbf";
-		
+
 		return new String(service.getRequest(url, null));
 	}
 
