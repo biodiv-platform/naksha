@@ -71,12 +71,12 @@ public class GeoServerIntegrationService {
 	 * Makes http get request to geoserver
 	 * @param uri the uri to hit
 	 * @param params the parameters with the url
-	 * @return Response string
+	 * @return byte[] response
 	 */
-	public String getRequest(String uri, List<NameValuePair> params) {
+	public byte[] getRequest(String uri, List<NameValuePair> params) {
 
 		CloseableHttpResponse response = null;
-		String stringResponse = null;
+		byte[] byteArrayResponse = null;
 
 		try {
 
@@ -90,14 +90,14 @@ public class GeoServerIntegrationService {
 			try {
 				response = httpclient.execute(request, context);
 				HttpEntity entity = response.getEntity();
-				stringResponse = EntityUtils.toString(entity);
+				byteArrayResponse = EntityUtils.toByteArray(entity);
 				EntityUtils.consume(entity);
 
 			} catch (IOException e) {
 				e.printStackTrace();
 				logger.error("Error while trying to send request at URL {}", uri);
 			} finally {
-				if (stringResponse != null)
+				if (byteArrayResponse != null)
 					HttpClientUtils.closeQuietly(response);
 			}
 		} catch (Exception e) {
@@ -105,6 +105,6 @@ public class GeoServerIntegrationService {
 			logger.error("Error while trying to send request at URL {}", uri);
 		}
 
-		return stringResponse;
+		return byteArrayResponse;
 	}
 }
