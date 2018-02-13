@@ -105,6 +105,6 @@ public class GeoServerIntegrationService {
 			logger.error("Error while trying to send request at URL {}", uri);
 		}
 
-		return byteArrayResponse;
+		return byteArrayResponse != null ? byteArrayResponse : new byte[0];
 	}
 }

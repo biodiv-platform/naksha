@@ -75,21 +75,18 @@ public class GeoserverController {
 		return Response.ok(new ByteArrayInputStream(file)).build();
 	}
 
-	//TODO Correct this call
 	@GET
-	@Path("/gwc/service/tms/1.0.0/{workspace}/{layer}/{projection}/{z}/{x}/{y}")
-	@Produces(MediaType.TEXT_PLAIN)
-	public String fetchTiles(@PathParam("workspace") String workspace,
-			@PathParam("layer") String layer,
-			@PathParam("projection") String projection,
+	@Path("/gwc/service/tms/1.0.0/{layer}/{z}/{x}/{y}")
+	@Produces("application/x-protobuf")
+	public Response fetchTiles(@PathParam("layer") String layer,
 			@PathParam("z") String z,
 			@PathParam("x") String x,
 			@PathParam("y") String y) {
 
-		String url = "gwc/service/tms/1.0.0/" + workspace + ":" + layer + "@EPSG%3A900913@pbf/" + z + "/" + x + "/" + y
-				+ ".pbf";
+		String url = "gwc/service/tms/1.0.0/" + layer + "@EPSG%3A900913@pbf/" + z + "/" + x + "/" + y + ".pbf";
 
-		return new String(service.getRequest(url, null));
+		byte[] file = service.getRequest(url, null);
+		return Response.ok(new ByteArrayInputStream(file)).build();
 	}
 
 }
