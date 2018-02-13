@@ -43,10 +43,18 @@ public class GeoserverController {
 
 	@GET
 	@Path("/layers/{id}/styles")
-	@Produces(MediaType.APPLICATION_JSON)
-	public String fetchAllStyles(@PathParam("id") String id) {
-		String url = "rest/layers/" + id + "/styles.json";
-		return new String(service.getRequest(url, null));
+	@Produces(MediaType.APPLICATION_XML)
+	public Document fetchAllStyles(@PathParam("id") String id) {
+		String url = "wms";
+
+		ArrayList<NameValuePair> params = new ArrayList<>();
+		params.add(new BasicNameValuePair("request", "GetStyles"));
+		params.add(new BasicNameValuePair("layers", id));
+		params.add(new BasicNameValuePair("service", "wms"));
+		params.add(new BasicNameValuePair("version", "1.1.1"));
+
+		String styles = new String(service.getRequest(url, params));
+		return Utils.convertStringToDocument(styles);
 	}
 
 	@GET

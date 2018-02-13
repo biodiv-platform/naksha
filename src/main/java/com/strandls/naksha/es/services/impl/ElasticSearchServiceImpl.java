@@ -470,7 +470,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 			MapResponse filteredMapResponse = querySearch(index, type, masterBoolQuery, from, limit, sortOn, sortType,
 					geoAggregationField, geoAggegationPrecision);
 			
-			mapResponse = onlyFilteredAggregation ? filteredMapResponse : mapResponse;
+			mapResponse = onlyFilteredAggregation != null && onlyFilteredAggregation ? filteredMapResponse : mapResponse;
 			mapResponse.setViewFilteredGeohashAggregation(filteredMapResponse.getGeohashAggregation());
 		}
 
