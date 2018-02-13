@@ -2,6 +2,7 @@ package com.strandls.naksha.controllers;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -15,6 +16,8 @@ import org.apache.http.message.BasicNameValuePair;
 import org.w3c.dom.Document;
 
 import com.strandls.naksha.geoserver.GeoServerIntegrationService;
+import com.strandls.naksha.geoserver.GeoserverService;
+import com.strandls.naksha.geoserver.models.GeoserverLayerStyles;
 import com.strandls.naksha.utils.Utils;
 
 /**
@@ -43,8 +46,8 @@ public class GeoserverController {
 
 	@GET
 	@Path("/layers/{id}/styles")
-	@Produces(MediaType.APPLICATION_XML)
-	public Document fetchAllStyles(@PathParam("id") String id) {
+	@Produces(MediaType.APPLICATION_JSON)
+	public List<GeoserverLayerStyles> fetchAllStyles(@PathParam("id") String id) {
 		String url = "wms";
 
 		ArrayList<NameValuePair> params = new ArrayList<>();
@@ -53,8 +56,9 @@ public class GeoserverController {
 		params.add(new BasicNameValuePair("service", "wms"));
 		params.add(new BasicNameValuePair("version", "1.1.1"));
 
-		String styles = new String(service.getRequest(url, params));
-		return Utils.convertStringToDocument(styles);
+		String styleString = new String(service.getRequest(url, params));
+		Document styleDocument = Utils.convertStringToDocument(styleString);
+		return GeoserverService.getLayerStyles(styleDocument);
 	}
 
 	@GET
