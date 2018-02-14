@@ -14,8 +14,13 @@ public class GeoserverService {
 
 	public static List<GeoserverLayerStyles> getLayerStyles(Document doc) {
 		List<GeoserverLayerStyles> styles = new ArrayList<>();
+		if(doc == null)
+			return styles;
 
 		NodeList nList = doc.getDocumentElement().getElementsByTagName("sld:UserStyle");
+		if(nList == null)
+			return styles;
+		
 		for (int temp = 0; temp < nList.getLength(); temp++) {
 			Node nNode = nList.item(temp);
 

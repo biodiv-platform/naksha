@@ -80,6 +80,26 @@ public class GeoserverController {
 	}
 
 	@GET
+	@Path("/legend/{layer}/{style}")
+	@Produces("image/png")
+	public Response fetchLegend(@PathParam("layer") String layer,
+			@PathParam("style") String style) {
+
+		String url = "wms";
+		
+		ArrayList<NameValuePair> params = new ArrayList<>();
+		params.add(new BasicNameValuePair("REQUEST", "GetLegendGraphic"));
+		params.add(new BasicNameValuePair("VERSION", "1.0.0"));
+		params.add(new BasicNameValuePair("FORMAT", "image/png"));
+		params.add(new BasicNameValuePair("transparent", "true"));
+		params.add(new BasicNameValuePair("LAYER", layer));
+		params.add(new BasicNameValuePair("style", style));
+		
+		byte[] file = service.getRequest(url, params);
+		return Response.ok(new ByteArrayInputStream(file)).build();
+	}
+
+	@GET
 	@Path("/gwc/service/tms/1.0.0/{layer}/{z}/{x}/{y}")
 	@Produces("application/x-protobuf")
 	public Response fetchTiles(@PathParam("layer") String layer,
