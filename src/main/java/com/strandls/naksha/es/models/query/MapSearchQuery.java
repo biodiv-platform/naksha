@@ -75,4 +75,11 @@ public class MapSearchQuery {
 		this.andExistQueries = andExistQueries;
 	}
 
+	@Override
+	public String toString() {
+		return "MapSearchQuery [andBoolQueries=" + andBoolQueries + ", orBoolQueries=" + orBoolQueries
+				+ ", andRangeQueries=" + andRangeQueries + ", orRangeQueries=" + orRangeQueries + ", andExistQueries="
+				+ andExistQueries + "]";
+	}
+
 }

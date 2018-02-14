@@ -47,4 +47,8 @@ public class MapRangeQuery {
 		this.end = end;
 	}
 
+	@Override
+	public String toString() {
+		return "MapRangeQuery [key=" + key + ", start=" + start + ", end=" + end + "]";
+	}
 }

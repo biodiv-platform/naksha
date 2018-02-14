@@ -54,4 +54,9 @@ public class MapBounds {
 	public void setRight(double right) {
 		this.right = right;
 	}
+
+	@Override
+	public String toString() {
+		return "MapBounds [top=" + top + ", left=" + left + ", bottom=" + bottom + ", right=" + right + "]";
+	}
 }

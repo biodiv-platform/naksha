@@ -37,4 +37,8 @@ public class MapBoolQuery {
 		this.values = values;
 	}
 
+	@Override
+	public String toString() {
+		return "MapBoolQuery [key=" + key + ", values=" + values + "]";
+	}
 }

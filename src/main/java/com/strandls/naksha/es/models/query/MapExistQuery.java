@@ -35,5 +35,9 @@ public class MapExistQuery {
 	public void setExists(boolean exists) {
 		this.exists = exists;
 	}
-	
+
+	@Override
+	public String toString() {
+		return "MapExistQuery [key=" + key + ", exists=" + exists + "]";
+	}
 }

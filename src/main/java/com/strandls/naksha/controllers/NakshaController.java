@@ -251,11 +251,14 @@ public class NakshaController {
 			throw new WebApplicationException(Response.status(Status.BAD_REQUEST)
 					.entity("Bounds not specified for filtering").build());
 		
-		
 		MapBounds bounds = null;
 		if(top != null && left != null && bottom != null && right != null)
 			bounds = new MapBounds(top, left, bottom, right);
 		
+		if(bounds != null && geoAggregationField == null)
+			throw new WebApplicationException(Response.status(Status.BAD_REQUEST)
+					.entity("Location field not specified for bounds").build());
+
 		try {
 			return esService.search(index, type, query, from, limit, sortOn, sortType,
 					geoAggregationField, geoAggegationPrecision, onlyFilteredAggregation, bounds);

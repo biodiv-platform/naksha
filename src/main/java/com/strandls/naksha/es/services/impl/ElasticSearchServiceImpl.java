@@ -267,7 +267,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 		return responses;
 	}
 
-	private MapResponse querySearch(String index, String type, QueryBuilder query, Integer from, Integer limit,
+	private MapResponse querySearch(String index, String type, QueryBuilder query, MapBounds bounds, Integer from, Integer limit,
 			String sortOn, MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision)
 			throws IOException {
 
@@ -289,10 +289,15 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 			sourceBuilder.aggregation(getGeoGridAggregationBuilder(geoAggregationField, geoAggegationPrecision));
 		}
 
+		if(bounds != null) {
+			GeoBoundingBoxQueryBuilder setCorners = QueryBuilders.geoBoundingBoxQuery(geoAggregationField)
+					.setCorners(bounds.getTop(), bounds.getLeft(), bounds.getBottom(), bounds.getRight());
+			sourceBuilder.postFilter(setCorners);
+		}
+
 		SearchRequest searchRequest = new SearchRequest(index);
 		searchRequest.types(type);
 		searchRequest.source(sourceBuilder);
-
 		SearchResponse searchResponse = client.search(searchRequest);
 
 		List<MapDocument> result = new ArrayList<>();
@@ -335,8 +340,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 		else
 			query = QueryBuilders.boolQuery().mustNot(QueryBuilders.existsQuery(key));
 
-		return querySearch(index, type, query, from, limit, sortOn, sortType, geoAggregationField,
-				geoAggegationPrecision);
+		return querySearch(index, type, query, null, from, limit, sortOn, sortType,
+				geoAggregationField, geoAggegationPrecision);
 
 	}
 
@@ -362,8 +367,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 				boolQuery.mustNot(QueryBuilders.existsQuery(query.getKey()));
 		}
 
-		return querySearch(index, type, boolQuery, from, limit, sortOn, sortType, geoAggregationField,
-				geoAggegationPrecision);
+		return querySearch(index, type, boolQuery, null, from, limit, sortOn, sortType,
+				geoAggregationField, geoAggegationPrecision);
 	}
 
 	/*
@@ -385,8 +390,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 			boolQuery.must(QueryBuilders.rangeQuery(query.getKey()).from(query.getStart()).to(query.getEnd()));
 		}
 
-		return querySearch(index, type, boolQuery, from, limit, sortOn, sortType, geoAggregationField,
-				geoAggegationPrecision);
+		return querySearch(index, type, boolQuery, null, from, limit, sortOn, sortType,
+				geoAggregationField, geoAggegationPrecision);
 	}
 
 	/*
@@ -460,18 +465,21 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
 		MapResponse mapResponse = null;
 		if(onlyFilteredAggregation == null || onlyFilteredAggregation == false)
-			mapResponse = querySearch(index, type, masterBoolQuery, from, limit, sortOn, sortType,
+			mapResponse = querySearch(index, type, masterBoolQuery, null, from, limit, sortOn, sortType,
 				geoAggregationField, geoAggegationPrecision);
 
 		if (bounds != null) {
 			GeoBoundingBoxQueryBuilder setCorners = QueryBuilders.geoBoundingBoxQuery(geoAggregationField)
 					.setCorners(bounds.getTop(), bounds.getLeft(), bounds.getBottom(), bounds.getRight());
-			masterBoolQuery.filter(setCorners);
-			MapResponse filteredMapResponse = querySearch(index, type, masterBoolQuery, from, limit, sortOn, sortType,
+
+			masterBoolQuery.must(setCorners);
+			MapResponse filteredMapResponse = querySearch(index, type, masterBoolQuery, bounds, from, limit, sortOn, sortType,
 					geoAggregationField, geoAggegationPrecision);
 			
 			mapResponse = onlyFilteredAggregation != null && onlyFilteredAggregation ? filteredMapResponse : mapResponse;
 			mapResponse.setViewFilteredGeohashAggregation(filteredMapResponse.getGeohashAggregation());
+			mapResponse.setDocuments(filteredMapResponse.getDocuments());
+			mapResponse.setTotalDocuments(filteredMapResponse.getTotalDocuments());
 		}
 
 		return mapResponse;
@@ -520,5 +528,4 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 		geohashGrid.precision(precision);
 		return geohashGrid;
 	}
-
 }
