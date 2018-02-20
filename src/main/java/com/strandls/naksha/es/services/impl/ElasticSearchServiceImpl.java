@@ -1,9 +1,14 @@
 package com.strandls.naksha.es.services.impl;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -16,10 +21,12 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchScrollRequest;
 import org.elasticsearch.action.support.replication.ReplicationResponse;
 import org.elasticsearch.action.support.replication.ReplicationResponse.ShardInfo;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -53,6 +60,7 @@ import com.strandls.naksha.es.models.query.MapExistQuery;
 import com.strandls.naksha.es.models.query.MapRangeQuery;
 import com.strandls.naksha.es.models.query.MapSearchQuery;
 import com.strandls.naksha.es.services.api.ElasticSearchService;
+import com.strandls.naksha.utils.Utils;
 
 /**
  * Implementation of {@link ElasticSearchService}
@@ -267,9 +275,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 		return responses;
 	}
 
-	private MapResponse querySearch(String index, String type, QueryBuilder query, MapBounds bounds, Integer from, Integer limit,
-			String sortOn, MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision)
-			throws IOException {
+	private MapResponse querySearch(String index, String type, QueryBuilder query, MapBounds bounds, Integer from,
+			Integer limit, String sortOn, MapSortType sortType, String geoAggregationField,
+			Integer geoAggegationPrecision) throws IOException {
 
 		SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 		if (query != null)
@@ -289,7 +297,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 			sourceBuilder.aggregation(getGeoGridAggregationBuilder(geoAggregationField, geoAggegationPrecision));
 		}
 
-		if(bounds != null) {
+		if (bounds != null) {
 			GeoBoundingBoxQueryBuilder setCorners = QueryBuilders.geoBoundingBoxQuery(geoAggregationField)
 					.setCorners(bounds.getTop(), bounds.getLeft(), bounds.getBottom(), bounds.getRight());
 			sourceBuilder.postFilter(setCorners);
@@ -340,8 +348,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 		else
 			query = QueryBuilders.boolQuery().mustNot(QueryBuilders.existsQuery(key));
 
-		return querySearch(index, type, query, null, from, limit, sortOn, sortType,
-				geoAggregationField, geoAggegationPrecision);
+		return querySearch(index, type, query, null, from, limit, sortOn, sortType, geoAggregationField,
+				geoAggegationPrecision);
 
 	}
 
@@ -367,8 +375,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 				boolQuery.mustNot(QueryBuilders.existsQuery(query.getKey()));
 		}
 
-		return querySearch(index, type, boolQuery, null, from, limit, sortOn, sortType,
-				geoAggregationField, geoAggegationPrecision);
+		return querySearch(index, type, boolQuery, null, from, limit, sortOn, sortType, geoAggregationField,
+				geoAggegationPrecision);
 	}
 
 	/*
@@ -390,26 +398,11 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 			boolQuery.must(QueryBuilders.rangeQuery(query.getKey()).from(query.getStart()).to(query.getEnd()));
 		}
 
-		return querySearch(index, type, boolQuery, null, from, limit, sortOn, sortType,
-				geoAggregationField, geoAggegationPrecision);
+		return querySearch(index, type, boolQuery, null, from, limit, sortOn, sortType, geoAggregationField,
+				geoAggegationPrecision);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.strandls.naksha.es.services.api.ElasticSearchService#search(java.lang.
-	 * String, java.lang.String, com.strandls.naksha.es.models.query.MapSearchQuery,
-	 * java.lang.Integer, java.lang.Integer, java.lang.String,
-	 * com.strandls.naksha.es.models.MapSortType, java.lang.String,
-	 * java.lang.Integer, java.lang.Boolean, com.strandls.naksha.es.models.MapBounds)
-	 */
-	@Override
-	public MapResponse search(String index, String type, MapSearchQuery searchQuery, Integer from, Integer limit,
-			String sortOn, MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision,
-			Boolean onlyFilteredAggregation, MapBounds bounds) throws IOException {
-
-		logger.info("SEARCH for index: {}, type: {}", index, type);
+	private BoolQueryBuilder getBoolQueryBuilder(MapSearchQuery searchQuery) {
 
 		BoolQueryBuilder masterBoolQuery = QueryBuilders.boolQuery();
 		BoolQueryBuilder boolQuery = null;
@@ -463,20 +456,44 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 			masterBoolQuery.must(boolQuery);
 		}
 
+		return masterBoolQuery;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see
+	 * com.strandls.naksha.es.services.api.ElasticSearchService#search(java.lang.
+	 * String, java.lang.String, com.strandls.naksha.es.models.query.MapSearchQuery,
+	 * java.lang.Integer, java.lang.Integer, java.lang.String,
+	 * com.strandls.naksha.es.models.MapSortType, java.lang.String,
+	 * java.lang.Integer, java.lang.Boolean,
+	 * com.strandls.naksha.es.models.MapBounds)
+	 */
+	@Override
+	public MapResponse search(String index, String type, MapSearchQuery searchQuery, Integer from, Integer limit,
+			String sortOn, MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision,
+			Boolean onlyFilteredAggregation, MapBounds bounds) throws IOException {
+
+		logger.info("SEARCH for index: {}, type: {}", index, type);
+
+		BoolQueryBuilder masterBoolQuery = getBoolQueryBuilder(searchQuery);
+
 		MapResponse mapResponse = null;
-		if(onlyFilteredAggregation == null || onlyFilteredAggregation == false)
+		if (onlyFilteredAggregation == null || onlyFilteredAggregation == false)
 			mapResponse = querySearch(index, type, masterBoolQuery, null, from, limit, sortOn, sortType,
-				geoAggregationField, geoAggegationPrecision);
+					geoAggregationField, geoAggegationPrecision);
 
 		if (bounds != null) {
 			GeoBoundingBoxQueryBuilder setCorners = QueryBuilders.geoBoundingBoxQuery(geoAggregationField)
 					.setCorners(bounds.getTop(), bounds.getLeft(), bounds.getBottom(), bounds.getRight());
 
 			masterBoolQuery.must(setCorners);
-			MapResponse filteredMapResponse = querySearch(index, type, masterBoolQuery, bounds, from, limit, sortOn, sortType,
-					geoAggregationField, geoAggegationPrecision);
-			
-			mapResponse = onlyFilteredAggregation != null && onlyFilteredAggregation ? filteredMapResponse : mapResponse;
+			MapResponse filteredMapResponse = querySearch(index, type, masterBoolQuery, bounds, from, limit, sortOn,
+					sortType, geoAggregationField, geoAggegationPrecision);
+
+			mapResponse = onlyFilteredAggregation != null && onlyFilteredAggregation ? filteredMapResponse
+					: mapResponse;
 			mapResponse.setViewFilteredGeohashAggregation(filteredMapResponse.getGeohashAggregation());
 			mapResponse.setDocuments(filteredMapResponse.getDocuments());
 			mapResponse.setTotalDocuments(filteredMapResponse.getTotalDocuments());
@@ -527,5 +544,66 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 		geohashGrid.field(field);
 		geohashGrid.precision(precision);
 		return geohashGrid;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see
+	 * com.strandls.naksha.es.services.api.ElasticSearchService#downloadSearch(java.
+	 * lang.String, java.lang.String,
+	 * com.strandls.naksha.es.models.query.MapSearchQuery, java.lang.String)
+	 */
+	@Override
+	public URI downloadSearch(String index, String type, MapSearchQuery query, String fileType) throws IOException {
+		BoolQueryBuilder boolQueryBuilder = getBoolQueryBuilder(query);
+
+		SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+		sourceBuilder.query(boolQueryBuilder);
+		sourceBuilder.size(5000);
+
+		SearchRequest searchRequest = new SearchRequest(index);
+		searchRequest.types(type);
+		searchRequest.source(sourceBuilder);
+		searchRequest.scroll(new TimeValue(60000));
+
+		SearchResponse searchResponse = client.search(searchRequest);
+
+		File tempFile = File.createTempFile("File_" + System.currentTimeMillis(), ".csv");
+		FileWriter writer = new FileWriter(tempFile);
+		boolean first = true;
+		Set<String> keySet = new HashSet<>();
+		do {
+			for (SearchHit hit : searchResponse.getHits().getHits()) {
+				Map<String, Object> resultMap = hit.getSourceAsMap();
+
+				if(keySet.isEmpty())
+					keySet = hit.getSourceAsMap().keySet();
+
+				if (fileType == null || "CSV".equalsIgnoreCase(fileType)) {
+					if(first)
+						Utils.writeCsvLine(writer, new ArrayList<Object>(keySet));
+
+					List<Object> values = new ArrayList<>();
+					for(String key : keySet) {
+						values.add(resultMap.get(key));
+					}
+					Utils.writeCsvLine(writer, values);
+				}
+				first = false;
+			}
+
+			SearchScrollRequest request = new SearchScrollRequest(searchResponse.getScrollId());
+			request.scroll(new TimeValue(60000));
+
+			searchResponse = client.searchScroll(request);
+		} while (searchResponse.getHits().getHits().length != 0);
+
+		writer.flush();
+		writer.close();
+
+		logger.info("Download completed for file: {}", tempFile.toURI().toString());
+
+		return tempFile.toURI();
 	}
 }

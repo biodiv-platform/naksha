@@ -1,13 +1,14 @@
 package com.strandls.naksha.es.services.api;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
 import com.strandls.naksha.es.models.MapBounds;
 import com.strandls.naksha.es.models.MapDocument;
-import com.strandls.naksha.es.models.MapResponse;
 import com.strandls.naksha.es.models.MapQueryResponse;
+import com.strandls.naksha.es.models.MapResponse;
 import com.strandls.naksha.es.models.MapSortType;
 import com.strandls.naksha.es.models.query.MapBoolQuery;
 import com.strandls.naksha.es.models.query.MapRangeQuery;
@@ -245,4 +246,20 @@ public interface ElasticSearchService {
 	 */
 	MapDocument geohashAggregation(String index, String type, String field, Integer precision) throws IOException;
 
+	/**
+	 * Download the result of search in a file
+	 *
+	 * @param index
+	 *            the index in which to search
+	 * @param type
+	 *            the type in which to search
+	 * @param query
+	 *            the query
+	 * @param fileType
+	 *            the file type. Can be CSV/TSV. Default is CSV.
+	 * @return {@link URI} of file
+	 * @throws IOException
+	 *             throws {@link IOException}
+	 */
+	URI downloadSearch(String index, String type, MapSearchQuery query, String fileType) throws IOException;
 }
