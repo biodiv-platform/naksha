@@ -273,7 +273,7 @@ public class NakshaController {
 	@Path("/download/{index}/{type}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public URI download(@PathParam("index") String index,
+	public String download(@PathParam("index") String index,
 			@PathParam("type") String type,
 			MapSearchQuery query) {
 		try {

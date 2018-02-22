@@ -257,9 +257,9 @@ public interface ElasticSearchService {
 	 *            the query
 	 * @param fileType
 	 *            the file type. Can be CSV/TSV. Default is CSV.
-	 * @return {@link URI} of file
+	 * @return Raw path of file
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
-	URI downloadSearch(String index, String type, MapSearchQuery query, String fileType) throws IOException;
+	String downloadSearch(String index, String type, MapSearchQuery query, String fileType) throws IOException;
 }

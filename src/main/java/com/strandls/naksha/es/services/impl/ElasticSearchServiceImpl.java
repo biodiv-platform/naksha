@@ -555,7 +555,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 	 * com.strandls.naksha.es.models.query.MapSearchQuery, java.lang.String)
 	 */
 	@Override
-	public URI downloadSearch(String index, String type, MapSearchQuery query, String fileType) throws IOException {
+	public String downloadSearch(String index, String type, MapSearchQuery query, String fileType) throws IOException {
 		BoolQueryBuilder boolQueryBuilder = getBoolQueryBuilder(query);
 
 		SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
@@ -604,6 +604,6 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
 		logger.info("Download completed for file: {}", tempFile.toURI().toString());
 
-		return tempFile.toURI();
+		return tempFile.toURI().getPath();
 	}
 }
