@@ -3,7 +3,6 @@ package com.strandls.naksha.es.services.impl;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -556,6 +555,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 	 */
 	@Override
 	public String downloadSearch(String index, String type, MapSearchQuery query, String fileType) throws IOException {
+		logger.info("Download request received for index: {}, type: {}", index, type);
+
 		BoolQueryBuilder boolQueryBuilder = getBoolQueryBuilder(query);
 
 		SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
@@ -602,8 +603,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 		writer.flush();
 		writer.close();
 
-		logger.info("Download completed for file: {}", tempFile.toURI().toString());
+		logger.info("Download completed for index: {}, type: {}, file: {}", index, type, tempFile.getAbsolutePath());
 
-		return tempFile.toURI().getPath();
+		return tempFile.getAbsolutePath();
 	}
 }
