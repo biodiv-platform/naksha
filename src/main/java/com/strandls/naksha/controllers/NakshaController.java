@@ -1,7 +1,6 @@
 package com.strandls.naksha.controllers;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -275,9 +274,11 @@ public class NakshaController {
 	@Produces(MediaType.APPLICATION_JSON)
 	public String download(@PathParam("index") String index,
 			@PathParam("type") String type,
+			@QueryParam("filePath") String filePath,
+			@QueryParam("fileType") String fileType,
 			MapSearchQuery query) {
 		try {
-			return esService.downloadSearch(index, type, query, null);
+			return esService.downloadSearch(index, type, query, filePath, fileType);
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());

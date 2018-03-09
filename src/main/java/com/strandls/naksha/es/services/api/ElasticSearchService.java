@@ -1,7 +1,6 @@
 package com.strandls.naksha.es.services.api;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -255,11 +254,14 @@ public interface ElasticSearchService {
 	 *            the type in which to search
 	 * @param query
 	 *            the query
+	 * @param filePath
+	 *            the filePath where the file needs to be downloaded
 	 * @param fileType
 	 *            the file type. Can be CSV/TSV. Default is CSV.
 	 * @return Raw path of file
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
-	String downloadSearch(String index, String type, MapSearchQuery query, String fileType) throws IOException;
+	String downloadSearch(String index, String type, MapSearchQuery query, String filePath, String fileType)
+			throws IOException;
 }

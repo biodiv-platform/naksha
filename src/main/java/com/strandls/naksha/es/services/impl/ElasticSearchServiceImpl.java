@@ -1,13 +1,15 @@
 package com.strandls.naksha.es.services.impl;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -547,49 +549,56 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * com.strandls.naksha.es.services.api.ElasticSearchService#downloadSearch(java.
 	 * lang.String, java.lang.String,
-	 * com.strandls.naksha.es.models.query.MapSearchQuery, java.lang.String)
+	 * com.strandls.naksha.es.models.query.MapSearchQuery, java.lang.String,
+	 * java.lang.String)
 	 */
 	@Override
-	public String downloadSearch(String index, String type, MapSearchQuery query, String fileType) throws IOException {
+	public String downloadSearch(String index, String type, MapSearchQuery query, String filePath, String fileType)
+			throws IOException {
 		logger.info("Download request received for index: {}, type: {}", index, type);
 
-		BoolQueryBuilder boolQueryBuilder = getBoolQueryBuilder(query);
+		fileType = fileType != null ? fileType : "csv";
 
+		BoolQueryBuilder boolQueryBuilder = getBoolQueryBuilder(query);
 		SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 		sourceBuilder.query(boolQueryBuilder);
 		sourceBuilder.size(5000);
-
 		SearchRequest searchRequest = new SearchRequest(index);
 		searchRequest.types(type);
 		searchRequest.source(sourceBuilder);
 		searchRequest.scroll(new TimeValue(60000));
-
 		SearchResponse searchResponse = client.search(searchRequest);
 
-		File tempFile = File.createTempFile("File_" + System.currentTimeMillis(), ".csv");
-		FileWriter writer = new FileWriter(tempFile);
+		File zipFile = new File(filePath + File.separator + System.currentTimeMillis() + ".zip");
+
+		ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipFile));
+		ZipEntry e = new ZipEntry("download_search." + fileType);
+		out.putNextEntry(e);
+
 		boolean first = true;
-		Set<String> keySet = new HashSet<>();
+		Set<String> headerSet = new HashSet<>();
+		List<Object> values = new ArrayList<>();
 		do {
 			for (SearchHit hit : searchResponse.getHits().getHits()) {
 				Map<String, Object> resultMap = hit.getSourceAsMap();
 
-				if(keySet.isEmpty())
-					keySet = hit.getSourceAsMap().keySet();
+				if (headerSet.isEmpty())
+					headerSet = hit.getSourceAsMap().keySet();
 
-				if (fileType == null || "CSV".equalsIgnoreCase(fileType)) {
-					if(first)
-						Utils.writeCsvLine(writer, new ArrayList<Object>(keySet));
+				if ("CSV".equalsIgnoreCase(fileType)) {
+					if (first)
+						out.write(Utils.getCsvBytes(new ArrayList<Object>(headerSet)));
 
-					List<Object> values = new ArrayList<>();
-					for(String key : keySet) {
+					values = new ArrayList<>();
+					for (String key : headerSet) {
 						values.add(resultMap.get(key));
 					}
-					Utils.writeCsvLine(writer, values);
+
+					out.write(Utils.getCsvBytes(values));
 				}
 				first = false;
 			}
@@ -600,11 +609,12 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 			searchResponse = client.searchScroll(request);
 		} while (searchResponse.getHits().getHits().length != 0);
 
-		writer.flush();
-		writer.close();
+		out.flush();
+		out.closeEntry();
+		out.close();
 
-		logger.info("Download completed for index: {}, type: {}, file: {}", index, type, tempFile.getAbsolutePath());
+		logger.info("Download completed for index: {}, type: {}, file: {}", index, type, zipFile.getAbsolutePath());
 
-		return tempFile.getAbsolutePath();
+		return zipFile.getAbsolutePath();
 	}
 }

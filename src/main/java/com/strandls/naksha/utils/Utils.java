@@ -34,35 +34,43 @@ public class Utils {
 		return null;
 	}
 
-    private static String followCVSformat(Object value) {
-    	if(value == null)
-    		return "";
+	private static String followCVSformat(Object value) {
+		if (value == null)
+			return "";
 
-        String result = value.toString();
-        result = result.replace("\n", "").replace("\r", "");
-        //https://tools.ietf.org/html/rfc4180
-        if (result.contains("\"")) {
-            result = result.replace("\"", "\"\"");
-        }
-        if(result.contains(",")) {
-        	result = "\"" + result + "\"";
-        }
-        return result;
-    }
+		String result = value.toString();
+		result = result.replace("\n", "").replace("\r", "");
+		// https://tools.ietf.org/html/rfc4180
+		if (result.contains("\"")) {
+			result = result.replace("\"", "\"\"");
+		}
+		if (result.contains(",")) {
+			result = "\"" + result + "\"";
+		}
+		return result;
+	}
+
+	public static String getCsvString(Collection<Object> values) {
+		boolean first = true;
+
+		StringBuilder sb = new StringBuilder();
+		for (Object value : values) {
+			if (!first)
+				sb.append(CSV_SEPARATOR);
+
+			sb.append(followCVSformat(value));
+			first = false;
+		}
+
+		sb.append("\n");
+		return sb.toString();
+	}
+
+	public static byte[] getCsvBytes(Collection<Object> values) {
+		return getCsvString(values).getBytes();
+	}
 
 	public static void writeCsvLine(Writer w, Collection<Object> values) throws IOException {
-        boolean first = true;
-
-        StringBuilder sb = new StringBuilder();
-        for (Object value : values) {
-            if (!first)
-                sb.append(CSV_SEPARATOR);
-
-            sb.append(followCVSformat(value));
-            first = false;
-        }
-
-        sb.append("\n");
-        w.append(sb.toString());
-    }
+		w.write(getCsvString(values));
+	}
 }
