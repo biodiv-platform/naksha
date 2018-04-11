@@ -2,6 +2,7 @@ package com.strandls.naksha.controllers;
 
 import java.io.IOException;
 
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -15,7 +16,6 @@ import javax.ws.rs.core.Response.Status;
 
 import com.strandls.naksha.es.models.MapResponse;
 import com.strandls.naksha.es.services.api.ElasticSearchGeoService;
-import com.strandls.naksha.es.services.impl.ElasticSearchGeoServiceImpl;
 
 /**
  * Controller for geo related query services
@@ -25,7 +25,8 @@ import com.strandls.naksha.es.services.impl.ElasticSearchGeoServiceImpl;
 @Path("geo")
 public class GeoController {
 
-	ElasticSearchGeoService service = new ElasticSearchGeoServiceImpl();
+	@Inject
+	ElasticSearchGeoService service;
 	
 	@GET
 	@Path("/within/{index}/{type}")
