@@ -1,23 +1,16 @@
 package com.strandls.naksha;
 
-import javax.inject.Singleton;
 import javax.ws.rs.ApplicationPath;
 
-import org.elasticsearch.client.ElasticsearchClient;
-import org.glassfish.hk2.utilities.binding.AbstractBinder;
+import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.spi.Container;
+import org.glassfish.jersey.server.spi.ContainerLifecycleListener;
+import org.glassfish.jersey.servlet.ServletContainer;
+import org.jvnet.hk2.guice.bridge.api.GuiceBridge;
+import org.jvnet.hk2.guice.bridge.api.GuiceIntoHK2Bridge;
 
-import com.strandls.naksha.controllers.BinningController;
-import com.strandls.naksha.controllers.GeoController;
-import com.strandls.naksha.controllers.GeoserverController;
-import com.strandls.naksha.controllers.NakshaController;
-import com.strandls.naksha.es.ESClientProvider;
-import com.strandls.naksha.es.services.api.ElasticAdminSearchService;
-import com.strandls.naksha.es.services.api.ElasticSearchGeoService;
-import com.strandls.naksha.es.services.api.ElasticSearchService;
-import com.strandls.naksha.es.services.impl.ElasticAdminSearchServiceImpl;
-import com.strandls.naksha.es.services.impl.ElasticSearchGeoServiceImpl;
-import com.strandls.naksha.es.services.impl.ElasticSearchServiceImpl;
+import com.google.inject.Injector;
 
 /**
  * 
@@ -28,23 +21,40 @@ import com.strandls.naksha.es.services.impl.ElasticSearchServiceImpl;
 public class NakshaApplication extends ResourceConfig {
 
 	public NakshaApplication() {
-		register(NakshaController.class);
-		register(BinningController.class);
-		register(GeoController.class);
-		register(GeoserverController.class);
-		register(NakshaResponseFilter.class);
 
-		register(new AbstractBinder() {
+		register(new ContainerLifecycleListener() {
 
 			@Override
-			protected void configure() {
-				bind(ESClientProvider.class).in(Singleton.class);
-				bind(ElasticsearchClient.class).in(Singleton.class);
-				bind(ElasticAdminSearchServiceImpl.class).to(ElasticAdminSearchService.class).in(Singleton.class);
-				bind(ElasticSearchServiceImpl.class).to(ElasticSearchService.class).in(Singleton.class);
-				bind(ElasticSearchGeoServiceImpl.class).to(ElasticSearchGeoService.class).in(Singleton.class);
+			public void onStartup(Container container) {
+
+				ServletContainer servletContainer = (ServletContainer) container;
+
+				Injector injector = (Injector) servletContainer.getServletContext()
+						.getAttribute(Injector.class.getName());
+
+				servletContainer.reload(new ResourceConfig()
+						.packages("com.strandls.naksha.controllers"));
+
+				ServiceLocator serviceLocator = container.getApplicationHandler().getServiceLocator();
+
+				GuiceBridge.getGuiceBridge().initializeGuiceBridge(serviceLocator);
+
+				GuiceIntoHK2Bridge guiceBridge = serviceLocator.getService(GuiceIntoHK2Bridge.class);
+
+				guiceBridge.bridgeGuiceInjector(injector);
+			}
+
+			@Override
+			public void onShutdown(Container container) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onReload(Container container) {
+				// TODO Auto-generated method stub
+
 			}
 		});
 	}
-
 }

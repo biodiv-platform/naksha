@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.GeoBoundingBoxQueryBuilder;
@@ -17,7 +19,7 @@ import com.strandls.naksha.binning.models.Feature;
 import com.strandls.naksha.binning.models.Geojson;
 import com.strandls.naksha.binning.models.GeojsonData;
 import com.strandls.naksha.binning.models.Geometry;
-import com.strandls.naksha.es.ESClientProvider;
+import com.strandls.naksha.es.ElasticSearchClient;
 
 /**
  * Services for {@link GeojsonData}
@@ -26,7 +28,10 @@ import com.strandls.naksha.es.ESClientProvider;
  */
 public class GeojsonService {
 
-	public static GeojsonData getGeojsonData(String index, String type, String geoField, double[][][] coordinatesList) throws IOException {
+	@Inject
+	private ElasticSearchClient client;
+
+	public GeojsonData getGeojsonData(String index, String type, String geoField, double[][][] coordinatesList) throws IOException {
 
 		Collection<Feature> features = new ArrayList<>(coordinatesList.length);
 
@@ -57,7 +62,7 @@ public class GeojsonService {
 		return new GeojsonData(geojson, max_count, min_count);
 	}
 
-	private static long querySearch(String index, String type, QueryBuilder query) throws IOException {
+	private long querySearch(String index, String type, QueryBuilder query) throws IOException {
 
 		SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
@@ -67,7 +72,7 @@ public class GeojsonService {
 		searchRequest.types(type);
 		searchRequest.source(sourceBuilder);
 
-		SearchResponse searchResponse = ESClientProvider.getClient().search(searchRequest);
+		SearchResponse searchResponse = client.search(searchRequest);
 
 		return searchResponse.getHits().getTotalHits();
 	}

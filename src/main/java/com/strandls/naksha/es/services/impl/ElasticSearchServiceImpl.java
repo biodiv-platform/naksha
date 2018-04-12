@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import javax.inject.Inject;
+
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -48,7 +50,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.strandls.naksha.es.ESClientProvider;
 import com.strandls.naksha.es.ElasticSearchClient;
 import com.strandls.naksha.es.models.MapBounds;
 import com.strandls.naksha.es.models.MapDocument;
@@ -71,7 +72,8 @@ import com.strandls.naksha.utils.Utils;
  */
 public class ElasticSearchServiceImpl implements ElasticSearchService {
 
-	private final ElasticSearchClient client = ESClientProvider.getClient();
+	@Inject
+	private ElasticSearchClient client;
 
 	private final Logger logger = LoggerFactory.getLogger(ElasticSearchServiceImpl.class);
 

@@ -3,6 +3,8 @@ package com.strandls.naksha.es.services.impl;
 import java.io.IOException;
 import java.util.HashMap;
 
+import javax.inject.Inject;
+
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
@@ -12,10 +14,10 @@ import org.elasticsearch.common.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.strandls.naksha.es.ESClientProvider;
+import com.strandls.naksha.es.ElasticSearchClient;
 import com.strandls.naksha.es.models.MapDocument;
-import com.strandls.naksha.es.models.MapQueryStatus;
 import com.strandls.naksha.es.models.MapQueryResponse;
+import com.strandls.naksha.es.models.MapQueryStatus;
 import com.strandls.naksha.es.services.api.ElasticAdminSearchService;
 
 /**
@@ -26,9 +28,14 @@ import com.strandls.naksha.es.services.api.ElasticAdminSearchService;
  */
 public class ElasticAdminSearchServiceImpl implements ElasticAdminSearchService {
 
-	private final RestClient client = ESClientProvider.getLowLevelClient();
+	private final RestClient client;
 
 	private final Logger logger = LoggerFactory.getLogger(ElasticAdminSearchServiceImpl.class);
+
+	@Inject
+	public ElasticAdminSearchServiceImpl(ElasticSearchClient client) {
+		this.client = client.getLowLevelClient();
+	}
 
 	/*
 	 * (non-Javadoc)

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.GeoBoundingBoxQueryBuilder;
@@ -14,7 +16,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.strandls.naksha.es.ESClientProvider;
+import com.strandls.naksha.es.ElasticSearchClient;
 import com.strandls.naksha.es.models.MapDocument;
 import com.strandls.naksha.es.models.MapResponse;
 import com.strandls.naksha.es.services.api.ElasticSearchGeoService;
@@ -29,6 +31,9 @@ public class ElasticSearchGeoServiceImpl implements ElasticSearchGeoService {
 
 	private final Logger logger = LoggerFactory.getLogger(ElasticSearchGeoServiceImpl.class);
 	
+	@Inject
+	private ElasticSearchClient client;
+
 	private MapResponse querySearch(String index, String type, QueryBuilder query) throws IOException {
 
 		SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
@@ -41,7 +46,7 @@ public class ElasticSearchGeoServiceImpl implements ElasticSearchGeoService {
 		searchRequest.types(type);
 		searchRequest.source(sourceBuilder);
 
-		SearchResponse searchResponse = ESClientProvider.getClient().search(searchRequest);
+		SearchResponse searchResponse = client.search(searchRequest);
 		List<MapDocument> result = new ArrayList<>();
 
 		long totalHits = searchResponse.getHits().getTotalHits();
