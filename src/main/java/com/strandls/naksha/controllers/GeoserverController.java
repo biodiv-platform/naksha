@@ -1,23 +1,31 @@
 package com.strandls.naksha.controllers;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.w3c.dom.Document;
 
 import com.strandls.naksha.geoserver.GeoServerIntegrationService;
 import com.strandls.naksha.geoserver.GeoserverService;
+import com.strandls.naksha.geoserver.LayerService;
 import com.strandls.naksha.geoserver.models.GeoserverLayerStyles;
 import com.strandls.naksha.utils.Utils;
 
@@ -32,6 +40,9 @@ public class GeoserverController {
 
 	@Inject
 	GeoServerIntegrationService service;
+
+	@Inject
+	LayerService layerService;
 
 	@GET
 	@Path("/layers/{workspace}/wfs")
@@ -115,4 +126,37 @@ public class GeoserverController {
 		return Response.ok(new ByteArrayInputStream(file)).build();
 	}
 
+	@Path("/uploadshp")
+    @POST
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public void uploadShp(FormDataMultiPart multiPart) throws IOException {
+
+        try {
+
+            FormDataBodyPart formdata = multiPart.getField("shp");
+            if (formdata == null) {
+            	throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                        .entity("Shp file not present").build());
+            }
+            InputStream shpInputStream = formdata.getValueAs(InputStream.class);
+
+            formdata = multiPart.getField("dbf");
+            if (formdata == null) {
+            	throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                        .entity("Dbf file not present").build());
+            }
+            InputStream dbfInputStream = formdata.getValueAs(InputStream.class);
+
+            formdata = multiPart.getField("metadata");
+            if (formdata == null) {
+            	throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
+                        .entity("Metadata file not present").build());
+            }
+            InputStream metadataInputStream = formdata.getValueAs(InputStream.class);
+
+            layerService.uploadShpLayer(shpInputStream, dbfInputStream, metadataInputStream);
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
+    }
 }

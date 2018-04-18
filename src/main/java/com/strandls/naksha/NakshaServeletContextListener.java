@@ -22,6 +22,7 @@ import com.strandls.naksha.binning.services.BinningModule;
 import com.strandls.naksha.dao.DAOFactory;
 import com.strandls.naksha.es.ElasticSearchClient;
 import com.strandls.naksha.es.services.impl.ESModule;
+import com.strandls.naksha.geoserver.GeoserverModule;
 
 public class NakshaServeletContextListener extends GuiceServletContextListener {
 
@@ -40,9 +41,9 @@ public class NakshaServeletContextListener extends GuiceServletContextListener {
 					bind(Connection.class).toInstance(connection);
 				}
 				catch (ClassNotFoundException e) {
-					logger.error("Error finding postgresql driver. " + e.getMessage());
+					logger.error("Error finding postgresql driver.", e);
 				} catch (SQLException e) {
-					logger.error("Error getting database connection. " + e.getMessage());
+					logger.error("Error getting database connection.", e);
 				}
 
 				bind(NakshaResponseFilter.class);
@@ -50,7 +51,7 @@ public class NakshaServeletContextListener extends GuiceServletContextListener {
 						RestClient.builder(HttpHost.create(NakshaConfig.getString("es.url"))));
 				bind(ElasticSearchClient.class).toInstance(esClient);
 			}
-		}, new ESModule(), new BinningModule());
+		}, new ESModule(), new BinningModule(), new GeoserverModule());
 	}
 
 	@Override
@@ -62,8 +63,7 @@ public class NakshaServeletContextListener extends GuiceServletContextListener {
 			try {
 				elasticSearchClient.close();
 			} catch (IOException e) {
-				logger.error("Error closing elasticsearch client");
-				e.printStackTrace();
+				logger.error("Error closing elasticsearch client. ", e);
 			}
 		}
 
