@@ -3,6 +3,7 @@ package com.strandls.naksha.es.services.impl;
 import com.google.inject.Singleton;
 import com.google.inject.servlet.ServletModule;
 import com.strandls.naksha.es.services.api.ElasticAdminSearchService;
+import com.strandls.naksha.es.services.api.ElasticSearchDownloadService;
 import com.strandls.naksha.es.services.api.ElasticSearchGeoService;
 import com.strandls.naksha.es.services.api.ElasticSearchService;
 
@@ -19,6 +20,6 @@ public class ESModule extends ServletModule  {
 		bind(ElasticAdminSearchService.class).to(ElasticAdminSearchServiceImpl.class).in(Singleton.class);
 		bind(ElasticSearchService.class).to(ElasticSearchServiceImpl.class).in(Singleton.class);
 		bind(ElasticSearchGeoService.class).to(ElasticSearchGeoServiceImpl.class).in(Singleton.class);
-
+		bind(ElasticSearchDownloadService.class).to(ElasticSearchDownloadServiceImpl.class).in(Singleton.class);
 	}
 }

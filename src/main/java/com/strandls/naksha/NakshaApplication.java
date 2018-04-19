@@ -46,13 +46,13 @@ public class NakshaApplication extends ResourceConfig {
 
 			@Override
 			public void onShutdown(Container container) {
-				// TODO Auto-generated method stub
+				// do nothing
 
 			}
 
 			@Override
 			public void onReload(Container container) {
-				// TODO Auto-generated method stub
+				// do nothing
 
 			}
 		});

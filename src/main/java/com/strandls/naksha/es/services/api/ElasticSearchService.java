@@ -4,11 +4,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import com.strandls.naksha.es.models.MapBounds;
 import com.strandls.naksha.es.models.MapDocument;
 import com.strandls.naksha.es.models.MapQueryResponse;
 import com.strandls.naksha.es.models.MapResponse;
-import com.strandls.naksha.es.models.MapSortType;
+import com.strandls.naksha.es.models.MapSearchParams;
 import com.strandls.naksha.es.models.query.MapBoolQuery;
 import com.strandls.naksha.es.models.query.MapRangeQuery;
 import com.strandls.naksha.es.models.query.MapSearchQuery;
@@ -111,15 +110,8 @@ public interface ElasticSearchService {
 	 *            the key of interest
 	 * @param value
 	 *            the value of the key
-	 * @param from
-	 *            optional
-	 * @param limit
-	 *            optional
-	 * @param sortOn
-	 *            the field on which sorting is required
-	 * @param sortType
-	 *            {@link MapSortType} the type of sorting which is required, default
-	 *            is descending
+	 * @param searchParams
+	 *            {@link MapSearchParams} search parameters
 	 * @param geoAggregationField
 	 *            the geo_point field on which geohash aggregation is required
 	 * @param geoAggegationPrecision
@@ -128,9 +120,8 @@ public interface ElasticSearchService {
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
-	MapResponse termSearch(String index, String type, String key, String value, Integer from, Integer limit,
-			String sortOn, MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision)
-			throws IOException;
+	MapResponse termSearch(String index, String type, String key, String value, MapSearchParams searchParams,
+			String geoAggregationField, Integer geoAggegationPrecision) throws IOException;
 
 	/**
 	 * Search of the form that a key can have multiple values. List of such queries
@@ -142,15 +133,8 @@ public interface ElasticSearchService {
 	 *            the type in which to search
 	 * @param queries
 	 *            list of {@link MapBoolQuery} queries
-	 * @param from
-	 *            optional
-	 * @param limit
-	 *            optional
-	 * @param sortOn
-	 *            the field on which sorting is required
-	 * @param sortType
-	 *            {@link MapSortType} the type of sorting which is required, default
-	 *            is descending
+	 * @param searchParams
+	 *            {@link MapSearchParams} search parameters
 	 * @param geoAggregationField
 	 *            the geo_point field on which geohash aggregation is required
 	 * @param geoAggegationPrecision
@@ -159,9 +143,8 @@ public interface ElasticSearchService {
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
-	MapResponse boolSearch(String index, String type, List<MapBoolQuery> queries, Integer from, Integer limit,
-			String sortOn, MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision)
-			throws IOException;
+	MapResponse boolSearch(String index, String type, List<MapBoolQuery> queries, MapSearchParams searchParams,
+			String geoAggregationField, Integer geoAggegationPrecision) throws IOException;
 
 	/**
 	 * Search of the form that a key can have its value in a range. List of such
@@ -173,15 +156,8 @@ public interface ElasticSearchService {
 	 *            the type in which to search
 	 * @param queries
 	 *            list of {@link MapRangeQuery} queries
-	 * @param from
-	 *            optional
-	 * @param limit
-	 *            optional
-	 * @param sortOn
-	 *            the field on which sorting is required
-	 * @param sortType
-	 *            {@link MapSortType} the type of sorting which is required, default
-	 *            is descending
+	 * @param searchParams
+	 *            {@link MapSearchParams} search parameters
 	 * @param geoAggregationField
 	 *            the geo_point field on which geohash aggregation is required
 	 * @param geoAggegationPrecision
@@ -190,9 +166,8 @@ public interface ElasticSearchService {
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
-	MapResponse rangeSearch(String index, String type, List<MapRangeQuery> queries, Integer from, Integer limit,
-			String sortOn, MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision)
-			throws IOException;
+	MapResponse rangeSearch(String index, String type, List<MapRangeQuery> queries, MapSearchParams searchParams,
+			String geoAggregationField, Integer geoAggegationPrecision) throws IOException;
 
 	/**
 	 * Search with combination of boolSeach and rangeSearch.
@@ -203,30 +178,21 @@ public interface ElasticSearchService {
 	 *            the type in which to search
 	 * @param query
 	 *            the query
-	 * @param from
-	 *            optional
-	 * @param limit
-	 *            optional
-	 * @param sortOn
-	 *            the field on which sorting is required
-	 * @param sortType
-	 *            {@link MapSortType} the type of sorting which is required, default
-	 *            is descending
+	 * @param searchParams
+	 *            {@link MapSearchParams} search parameters
 	 * @param geoAggregationField
 	 *            the geo_point field on which geohash aggregation is required
 	 * @param geoAggegationPrecision
 	 *            the precision for geohash aggregation, default is 1
 	 * @param onlyFilteredAggregation
 	 *            if true give aggregation result only for the bounds specified
-	 * @param bounds
-	 *            the bounds in which the search is required
 	 * @return {@link MapResponse}
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
-	MapResponse search(String index, String type, MapSearchQuery query, Integer from, Integer limit, String sortOn,
-			MapSortType sortType, String geoAggregationField, Integer geoAggegationPrecision,
-			Boolean onlyFilteredAggregation, MapBounds bounds) throws IOException;
+	MapResponse search(String index, String type, MapSearchQuery query, MapSearchParams searchParams,
+			String geoAggregationField, Integer geoAggegationPrecision, Boolean onlyFilteredAggregation)
+			throws IOException;
 
 	/**
 	 * Geohash aggregation search on a geo_point field.
@@ -244,24 +210,4 @@ public interface ElasticSearchService {
 	 *             throws {@link IOException}
 	 */
 	MapDocument geohashAggregation(String index, String type, String field, Integer precision) throws IOException;
-
-	/**
-	 * Download the result of search in a file
-	 *
-	 * @param index
-	 *            the index in which to search
-	 * @param type
-	 *            the type in which to search
-	 * @param query
-	 *            the query
-	 * @param filePath
-	 *            the filePath where the file needs to be downloaded
-	 * @param fileType
-	 *            the file type. Can be CSV/TSV. Default is CSV.
-	 * @return Raw path of file
-	 * @throws IOException
-	 *             throws {@link IOException}
-	 */
-	String downloadSearch(String index, String type, MapSearchQuery query, String filePath, String fileType)
-			throws IOException;
 }

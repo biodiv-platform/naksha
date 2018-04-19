@@ -19,16 +19,21 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.strandls.naksha.es.models.MapBounds;
 import com.strandls.naksha.es.models.MapDocument;
 import com.strandls.naksha.es.models.MapQueryResponse;
 import com.strandls.naksha.es.models.MapResponse;
+import com.strandls.naksha.es.models.MapSearchParams;
 import com.strandls.naksha.es.models.MapSortType;
 import com.strandls.naksha.es.models.query.MapBoolQuery;
 import com.strandls.naksha.es.models.query.MapRangeQuery;
 import com.strandls.naksha.es.models.query.MapSearchQuery;
 import com.strandls.naksha.es.services.api.ElasticAdminSearchService;
+import com.strandls.naksha.es.services.api.ElasticSearchDownloadService;
 import com.strandls.naksha.es.services.api.ElasticSearchService;
 
 /**
@@ -44,6 +49,11 @@ public class NakshaController {
 
 	@Inject
 	public ElasticAdminSearchService elasticAdminSearchService;
+
+	@Inject
+	public ElasticSearchDownloadService elasticSearchDownloadService;
+
+	private final Logger logger = LoggerFactory.getLogger(NakshaController.class);
 	
 	@POST
 	@Path("/data/{index}/{type}/{documentId}")
@@ -58,14 +68,14 @@ public class NakshaController {
 		try {
 			new ObjectMapper().readValue(docString, Map.class);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 			throw new WebApplicationException(Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build());
 		}
 		
 		try {
 			return elasticSearchService.create(index, type, documentId, docString);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
 	}
@@ -80,7 +90,7 @@ public class NakshaController {
 		try {
 			return elasticSearchService.fetch(index, type, documentId);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
 	}
@@ -97,7 +107,7 @@ public class NakshaController {
 		try {
 			return elasticSearchService.update(index, type, documentId, document);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
 	}
@@ -112,7 +122,7 @@ public class NakshaController {
 		try {
 			return elasticSearchService.delete(index, type, documentId);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
 		
@@ -128,7 +138,7 @@ public class NakshaController {
 		try {
 			return elasticSearchService.bulkUpload(index, type, jsonArray);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
 	}
@@ -152,10 +162,11 @@ public class NakshaController {
 					.entity("key or value not specified").build());
 		
 		try {
-			return elasticSearchService.termSearch(index, type, key, value, from, limit,
-					sortOn, sortType, geoAggregationField, geoAggegationPrecision);
+			MapSearchParams searchParams = new MapSearchParams(from, limit, sortOn, sortType);
+			return elasticSearchService.termSearch(index, type, key, value, searchParams,
+					geoAggregationField, geoAggegationPrecision);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
 	}
@@ -175,10 +186,11 @@ public class NakshaController {
 			List<MapBoolQuery> query) {
 		
 		try {
-			return elasticSearchService.boolSearch(index, type, query, from, limit,
-					sortOn, sortType, geoAggregationField, geoAggegationPrecision);
+			MapSearchParams searchParams = new MapSearchParams(from, limit, sortOn, sortType);
+			return elasticSearchService.boolSearch(index, type, query, searchParams,
+					geoAggregationField, geoAggegationPrecision);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
 	}
@@ -198,10 +210,11 @@ public class NakshaController {
 			List<MapRangeQuery> query) {
 		
 		try {
-			return elasticSearchService.rangeSearch(index, type, query, from, limit,
-					sortOn, sortType, geoAggregationField, geoAggegationPrecision);
+			MapSearchParams searchParams = new MapSearchParams(from, limit, sortOn, sortType);
+			return elasticSearchService.rangeSearch(index, type, query, searchParams,
+					geoAggregationField, geoAggegationPrecision);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
 	}
@@ -224,7 +237,7 @@ public class NakshaController {
 		try {
 			return elasticSearchService.geohashAggregation(index, type, field, precision);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
 	}
@@ -248,7 +261,7 @@ public class NakshaController {
 			@QueryParam("right") Double right,
 			MapSearchQuery query) {
 		
-		if(onlyFilteredAggregation != null && onlyFilteredAggregation == true &&
+		if(onlyFilteredAggregation != null && onlyFilteredAggregation &&
 				(top == null || bottom == null || left == null || right == null))
 			throw new WebApplicationException(Response.status(Status.BAD_REQUEST)
 					.entity("Bounds not specified for filtering").build());
@@ -262,10 +275,11 @@ public class NakshaController {
 					.entity("Location field not specified for bounds").build());
 
 		try {
-			return elasticSearchService.search(index, type, query, from, limit, sortOn, sortType,
-					geoAggregationField, geoAggegationPrecision, onlyFilteredAggregation, bounds);
+			MapSearchParams searchParams = new MapSearchParams(from, limit, sortOn, sortType);
+			return elasticSearchService.search(index, type, query, searchParams,
+					geoAggregationField, geoAggegationPrecision, onlyFilteredAggregation);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
 	}
@@ -280,9 +294,9 @@ public class NakshaController {
 			@QueryParam("fileType") String fileType,
 			MapSearchQuery query) {
 		try {
-			return elasticSearchService.downloadSearch(index, type, query, filePath, fileType);
+			return elasticSearchDownloadService.downloadSearch(index, type, query, filePath, fileType);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
 	}
@@ -298,7 +312,7 @@ public class NakshaController {
 		try {
 			return elasticAdminSearchService.getMapping(index);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
 	}
@@ -315,7 +329,7 @@ public class NakshaController {
 		try {
 			return elasticAdminSearchService.postMapping(index, docString);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
 	}
@@ -329,7 +343,7 @@ public class NakshaController {
 		try {
 			return elasticAdminSearchService.createIndex(index, type);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
 	}

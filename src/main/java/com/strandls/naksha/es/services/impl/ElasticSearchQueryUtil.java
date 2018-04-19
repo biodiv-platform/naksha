@@ -1,5 +1,7 @@
 package com.strandls.naksha.es.services.impl;
 
+import java.util.List;
+
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.ExistsQueryBuilder;
@@ -10,8 +12,12 @@ import org.elasticsearch.index.query.TermsQueryBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.geogrid.GeoGridAggregationBuilder;
 
+import com.strandls.naksha.es.models.query.MapAndBoolQuery;
+import com.strandls.naksha.es.models.query.MapAndRangeQuery;
 import com.strandls.naksha.es.models.query.MapBoolQuery;
 import com.strandls.naksha.es.models.query.MapExistQuery;
+import com.strandls.naksha.es.models.query.MapOrBoolQuery;
+import com.strandls.naksha.es.models.query.MapOrRangeQuery;
 import com.strandls.naksha.es.models.query.MapQuery;
 import com.strandls.naksha.es.models.query.MapRangeQuery;
 import com.strandls.naksha.es.models.query.MapSearchQuery;
@@ -39,14 +45,13 @@ public class ElasticSearchQueryUtil {
 		return query.getPath() != null ? getNestedQueryBuilder(query, queryBuilder) : queryBuilder;
 	}
 
-	protected BoolQueryBuilder getBoolQueryBuilder(MapSearchQuery searchQuery) {
-
-		BoolQueryBuilder masterBoolQuery = QueryBuilders.boolQuery();
-		BoolQueryBuilder boolQuery = null;
-
-		if (searchQuery != null && searchQuery.getAndBoolQueries() != null) {
+	private void buildBoolQueries(List<MapAndBoolQuery> andQueries, List<MapOrBoolQuery> orQueries, BoolQueryBuilder masterBoolQuery) {
+		
+		BoolQueryBuilder boolQuery;
+		
+		if (andQueries != null) {
 			boolQuery = QueryBuilders.boolQuery();
-			for (MapBoolQuery query : searchQuery.getAndBoolQueries()) {
+			for (MapBoolQuery query : andQueries) {
 				if (query.getValues() != null)
 					boolQuery.must(getTermsQueryBuilder(query));
 				else
@@ -55,9 +60,9 @@ public class ElasticSearchQueryUtil {
 			masterBoolQuery.must(boolQuery);
 		}
 
-		if (searchQuery != null && searchQuery.getOrBoolQueries() != null) {
+		if (orQueries != null) {
 			boolQuery = QueryBuilders.boolQuery();
-			for (MapBoolQuery query : searchQuery.getOrBoolQueries()) {
+			for (MapBoolQuery query : orQueries) {
 				if (query.getValues() != null)
 					boolQuery.should(getTermsQueryBuilder(query));
 				else
@@ -65,26 +70,34 @@ public class ElasticSearchQueryUtil {
 			}
 			masterBoolQuery.must(boolQuery);
 		}
+	}
 
-		if (searchQuery != null && searchQuery.getAndRangeQueries() != null) {
+	private void buildRangeQueries(List<MapAndRangeQuery> andQueries, List<MapOrRangeQuery> orQueries, BoolQueryBuilder masterBoolQuery) {
+		
+		BoolQueryBuilder boolQuery;
+
+		if (andQueries != null) {
 			boolQuery = QueryBuilders.boolQuery();
-			for (MapRangeQuery query : searchQuery.getAndRangeQueries()) {
+			for (MapAndRangeQuery query : andQueries) {
 				boolQuery.must(getRangeQueryBuilder(query));
 			}
 			masterBoolQuery.must(boolQuery);
 		}
 
-		if (searchQuery != null && searchQuery.getOrRangeQueries() != null) {
+		if (orQueries != null) {
 			boolQuery = QueryBuilders.boolQuery();
-			for (MapRangeQuery query : searchQuery.getOrRangeQueries()) {
+			for (MapOrRangeQuery query : orQueries) {
 				boolQuery.should(getRangeQueryBuilder(query));
 			}
 			masterBoolQuery.must(boolQuery);
 		}
+	}
 
-		if (searchQuery != null && searchQuery.getAndExistQueries() != null) {
-			boolQuery = QueryBuilders.boolQuery();
-			for (MapExistQuery query : searchQuery.getAndExistQueries()) {
+	private void buildExistsQueries(List<MapExistQuery> andExistQueries, BoolQueryBuilder masterBoolQuery) {
+
+		if (andExistQueries != null) {
+			BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
+			for (MapExistQuery query : andExistQueries) {
 				if (query.isExists())
 					boolQuery.must(getExistsQueryBuilder(query));
 				else
@@ -92,7 +105,18 @@ public class ElasticSearchQueryUtil {
 			}
 			masterBoolQuery.must(boolQuery);
 		}
+	}
 
+	protected BoolQueryBuilder getBoolQueryBuilder(MapSearchQuery searchQuery) {
+
+		BoolQueryBuilder masterBoolQuery = QueryBuilders.boolQuery();
+		if(searchQuery == null)
+			return masterBoolQuery;
+
+		buildBoolQueries(searchQuery.getAndBoolQueries(), searchQuery.getOrBoolQueries(), masterBoolQuery);
+		buildRangeQueries(searchQuery.getAndRangeQueries(), searchQuery.getOrRangeQueries(), masterBoolQuery);
+		buildExistsQueries(searchQuery.getAndExistQueries(), masterBoolQuery);
+		
 		return masterBoolQuery;
 	}
 

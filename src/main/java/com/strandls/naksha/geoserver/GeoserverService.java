@@ -12,6 +12,10 @@ import com.strandls.naksha.geoserver.models.GeoserverLayerStyles;
 
 public class GeoserverService {
 
+	private GeoserverService() {
+		
+	}
+
 	public static List<GeoserverLayerStyles> getLayerStyles(Document doc) {
 		List<GeoserverLayerStyles> styles = new ArrayList<>();
 		if(doc == null)

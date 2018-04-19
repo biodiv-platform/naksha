@@ -18,13 +18,15 @@ public class NakshaConfig {
 	private static Configuration config;
 
 	private static final Logger logger = LoggerFactory.getLogger(NakshaConfig.class);
+	
+	private NakshaConfig() {}
 
 	static {
 		Configurations configs = new Configurations();
 		try {
 			config = configs.properties(new File("config.properties"));
 		} catch (ConfigurationException cex) {
-			logger.error("Error while reading configuration. Message " + cex.getMessage());
+			logger.error("Error while reading configuration. Message {}", cex.getMessage());
 		}
 	}
 

@@ -7,9 +7,12 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Enumeration;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import javax.servlet.ServletContextEvent;
 
 import org.apache.http.HttpHost;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.elasticsearch.client.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,23 +31,42 @@ public class NakshaServeletContextListener extends GuiceServletContextListener {
 
 	private final Logger logger = LoggerFactory.getLogger(NakshaServeletContextListener.class);
 
+	/**
+	 * The maximum number of connections to maintain per route by the pooling client
+	 * manager
+	 */
+	protected static final int MAX_CONNECTIONS_PER_ROUTE = 5;
+
 	@Override
 	protected Injector getInjector() {
 		return Guice.createInjector(new ServletModule() {
 
 			@Override
 			protected void configureServlets() {
+				
+				// Start Geoserver related configurations --------------------------------------
 				try {
+
+					PoolingHttpClientConnectionManager manager = new PoolingHttpClientConnectionManager();
+					manager.setDefaultMaxPerRoute(MAX_CONNECTIONS_PER_ROUTE);
+					bind(PoolingHttpClientConnectionManager.class).toInstance(manager);
+					
+					ScriptEngine engine = new ScriptEngineManager().getEngineByName("python");
+					bind(ScriptEngine.class).toInstance(engine);
+
 					Class.forName("org.postgresql.Driver");
 					DAOFactory daoFactory = DAOFactory.getInstance();
 					Connection connection = daoFactory.getConnection();
 					bind(Connection.class).toInstance(connection);
+
 				}
 				catch (ClassNotFoundException e) {
 					logger.error("Error finding postgresql driver.", e);
 				} catch (SQLException e) {
 					logger.error("Error getting database connection.", e);
 				}
+
+				// ------------------------ End Geoserver related configurations
 
 				bind(NakshaResponseFilter.class);
 				ElasticSearchClient esClient = new ElasticSearchClient(
@@ -65,6 +87,11 @@ public class NakshaServeletContextListener extends GuiceServletContextListener {
 			} catch (IOException e) {
 				logger.error("Error closing elasticsearch client. ", e);
 			}
+		}
+
+		PoolingHttpClientConnectionManager httpConnectionManger = injector.getInstance(PoolingHttpClientConnectionManager.class);
+		if (httpConnectionManger != null) {
+			httpConnectionManger.close();
 		}
 
 	    ClassLoader cl = Thread.currentThread().getContextClassLoader();
