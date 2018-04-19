@@ -12,7 +12,11 @@ public class MapOrRangeQuery extends MapRangeQuery {
 	}
 	
 	public MapOrRangeQuery(String key, Object start, Object end) {
-		super(key, start, end);
+		this(key, start, end, null);
+	}
+
+	public MapOrRangeQuery(String key, Object start, Object end, String path) {
+		super(key, start, end, path);
 	}
 
 }

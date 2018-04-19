@@ -10,9 +10,13 @@ public class MapAndRangeQuery extends MapRangeQuery {
 	public MapAndRangeQuery() {
 		super();
 	}
-	
+
 	public MapAndRangeQuery(String key, Object start, Object end) {
-		super(key, start, end);
+		this(key, start, end, null);
+	}
+
+	public MapAndRangeQuery(String key, Object start, Object end, String path) {
+		super(key, start, end, path);
 	}
 
 }

@@ -39,8 +39,6 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.geogrid.GeoGridAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
@@ -58,7 +56,6 @@ import com.strandls.naksha.es.models.MapQueryStatus;
 import com.strandls.naksha.es.models.MapResponse;
 import com.strandls.naksha.es.models.MapSortType;
 import com.strandls.naksha.es.models.query.MapBoolQuery;
-import com.strandls.naksha.es.models.query.MapExistQuery;
 import com.strandls.naksha.es.models.query.MapRangeQuery;
 import com.strandls.naksha.es.models.query.MapSearchQuery;
 import com.strandls.naksha.es.services.api.ElasticSearchService;
@@ -70,7 +67,7 @@ import com.strandls.naksha.utils.Utils;
  * @author mukund
  *
  */
-public class ElasticSearchServiceImpl implements ElasticSearchService {
+public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements ElasticSearchService {
 
 	@Inject
 	private ElasticSearchClient client;
@@ -405,63 +402,6 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 				geoAggegationPrecision);
 	}
 
-	private BoolQueryBuilder getBoolQueryBuilder(MapSearchQuery searchQuery) {
-
-		BoolQueryBuilder masterBoolQuery = QueryBuilders.boolQuery();
-		BoolQueryBuilder boolQuery = null;
-
-		if (searchQuery != null && searchQuery.getAndBoolQueries() != null) {
-			boolQuery = QueryBuilders.boolQuery();
-			for (MapBoolQuery query : searchQuery.getAndBoolQueries()) {
-				if (query.getValues() != null)
-					boolQuery.must(QueryBuilders.termsQuery(query.getKey(), query.getValues()));
-				else
-					boolQuery.mustNot(QueryBuilders.existsQuery(query.getKey()));
-			}
-			masterBoolQuery.must(boolQuery);
-		}
-
-		if (searchQuery != null && searchQuery.getOrBoolQueries() != null) {
-			boolQuery = QueryBuilders.boolQuery();
-			for (MapBoolQuery query : searchQuery.getOrBoolQueries()) {
-				if (query.getValues() != null)
-					boolQuery.should(QueryBuilders.termsQuery(query.getKey(), query.getValues()));
-				else
-					boolQuery.mustNot(QueryBuilders.existsQuery(query.getKey()));
-			}
-			masterBoolQuery.must(boolQuery);
-		}
-
-		if (searchQuery != null && searchQuery.getAndRangeQueries() != null) {
-			boolQuery = QueryBuilders.boolQuery();
-			for (MapRangeQuery query : searchQuery.getAndRangeQueries()) {
-				boolQuery.must(QueryBuilders.rangeQuery(query.getKey()).from(query.getStart()).to(query.getEnd()));
-			}
-			masterBoolQuery.must(boolQuery);
-		}
-
-		if (searchQuery != null && searchQuery.getOrRangeQueries() != null) {
-			boolQuery = QueryBuilders.boolQuery();
-			for (MapRangeQuery query : searchQuery.getOrRangeQueries()) {
-				boolQuery.should(QueryBuilders.rangeQuery(query.getKey()).from(query.getStart()).to(query.getEnd()));
-			}
-			masterBoolQuery.must(boolQuery);
-		}
-
-		if (searchQuery != null && searchQuery.getAndExistQueries() != null) {
-			boolQuery = QueryBuilders.boolQuery();
-			for (MapExistQuery query : searchQuery.getAndExistQueries()) {
-				if (query.isExists())
-					boolQuery.must(QueryBuilders.existsQuery(query.getKey()));
-				else
-					boolQuery.mustNot(QueryBuilders.existsQuery(query.getKey()));
-			}
-			masterBoolQuery.must(boolQuery);
-		}
-
-		return masterBoolQuery;
-	}
-
 	/*
 	 * (non-Javadoc)
 	 *
@@ -539,14 +479,6 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
 		return new MapDocument(XContentHelper.toString(aggregation));
 
-	}
-
-	private GeoGridAggregationBuilder getGeoGridAggregationBuilder(String field, Integer precision) {
-		GeoGridAggregationBuilder geohashGrid = AggregationBuilders
-				.geohashGrid(field + "-" + String.valueOf(precision));
-		geohashGrid.field(field);
-		geohashGrid.precision(precision);
-		return geohashGrid;
 	}
 
 	/*

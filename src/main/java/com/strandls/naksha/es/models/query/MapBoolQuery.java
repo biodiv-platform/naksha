@@ -7,26 +7,15 @@ import java.util.List;
  * 
  * @author mukund
  */
-public class MapBoolQuery {
-
-	private String key;
+public class MapBoolQuery extends MapQuery {
 
 	private List<Object> values;
 
 	public MapBoolQuery() {}
 	
-	public MapBoolQuery(String key, List<Object> values) {
-		super();
-		this.key = key;
+	public MapBoolQuery(String key, List<Object> values, String path) {
+		super(key, path);
 		this.values = values;
-	}
-
-	public String getKey() {
-		return key;
-	}
-
-	public void setKey(String key) {
-		this.key = key;
 	}
 
 	public List<Object> getValues() {
@@ -39,6 +28,7 @@ public class MapBoolQuery {
 
 	@Override
 	public String toString() {
-		return "MapBoolQuery [key=" + key + ", values=" + values + "]";
+		return "MapBoolQuery [key=" + getKey() + ", values=" + values + ", path=" + getPath() + "]";
 	}
+
 }

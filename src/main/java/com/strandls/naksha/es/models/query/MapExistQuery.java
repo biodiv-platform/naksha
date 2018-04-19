@@ -6,26 +6,15 @@ package com.strandls.naksha.es.models.query;
  * @author mukund
  *
  */
-public class MapExistQuery {
+public class MapExistQuery extends MapQuery {
 
-	private String key;
-	
 	private boolean exists;
 
 	public MapExistQuery() {}
 	
-	public MapExistQuery(String key, boolean exists) {
-		super();
-		this.key = key;
+	public MapExistQuery(String key, boolean exists, String path) {
+		super(key, path);
 		this.exists = exists;
-	}
-
-	public String getKey() {
-		return key;
-	}
-
-	public void setKey(String key) {
-		this.key = key;
 	}
 
 	public boolean isExists() {
@@ -38,6 +27,6 @@ public class MapExistQuery {
 
 	@Override
 	public String toString() {
-		return "MapExistQuery [key=" + key + ", exists=" + exists + "]";
+		return "MapExistQuery [key=" + getKey() + ", exists=" + exists + ", path=" + getPath() + "]";
 	}
 }

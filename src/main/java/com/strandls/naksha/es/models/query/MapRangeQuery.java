@@ -6,9 +6,7 @@ package com.strandls.naksha.es.models.query;
  * 
  * @author mukund
  */
-public class MapRangeQuery {
-
-	private String key;
+public class MapRangeQuery extends MapQuery {
 
 	private Object start;
 
@@ -16,19 +14,10 @@ public class MapRangeQuery {
 
 	public MapRangeQuery() {}
 	
-	public MapRangeQuery(String key, Object start, Object end) {
-		super();
-		this.key = key;
+	public MapRangeQuery(String key, Object start, Object end, String path) {
+		super(key, path);
 		this.start = start;
 		this.end = end;
-	}
-
-	public String getKey() {
-		return key;
-	}
-
-	public void setKey(String key) {
-		this.key = key;
 	}
 
 	public Object getStart() {
@@ -49,6 +38,6 @@ public class MapRangeQuery {
 
 	@Override
 	public String toString() {
-		return "MapRangeQuery [key=" + key + ", start=" + start + ", end=" + end + "]";
+		return "MapRangeQuery [key=" + getKey() + ", start=" + start + ", end=" + end + ", path=" + getPath() + "]";
 	}
 }

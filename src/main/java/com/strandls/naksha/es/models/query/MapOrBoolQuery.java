@@ -12,9 +12,13 @@ public class MapOrBoolQuery extends MapBoolQuery {
 	public MapOrBoolQuery() {
 		super();
 	}
-	
+
 	public MapOrBoolQuery(String key, List<Object> values) {
-		super(key, values);
+		this(key, values, null);
+	}
+
+	public MapOrBoolQuery(String key, List<Object> values, String path) {
+		super(key, values, path);
 	}
 
 }

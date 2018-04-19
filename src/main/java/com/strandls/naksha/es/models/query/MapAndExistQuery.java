@@ -10,9 +10,13 @@ public class MapAndExistQuery extends MapExistQuery {
 	public MapAndExistQuery() {
 		super();
 	}
-	
+
 	public MapAndExistQuery(String key, boolean exists) {
-		super(key, exists);
+		this(key, exists, null);
+	}
+
+	public MapAndExistQuery(String key, boolean exists, String path) {
+		super(key, exists, path);
 	}
 
 }
