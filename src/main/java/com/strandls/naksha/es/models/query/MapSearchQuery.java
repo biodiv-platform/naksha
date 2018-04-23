@@ -2,6 +2,8 @@ package com.strandls.naksha.es.models.query;
 
 import java.util.List;
 
+import com.strandls.naksha.es.models.MapSearchParams;
+
 /**
  * A master query with combination of {@link MapBoolQuery},
  * {@link MapRangeQuery} and {@link MapExistQuery}.
@@ -21,18 +23,27 @@ public class MapSearchQuery {
 
 	private List<MapExistQuery> andExistQueries;
 
+	private MapSearchParams searchParams;
+
 	public MapSearchQuery() {
 	}
 
 	public MapSearchQuery(List<MapAndBoolQuery> andBoolQueries, List<MapOrBoolQuery> orBoolQueries,
 			List<MapAndRangeQuery> andRangeQueries, List<MapOrRangeQuery> orRangeQueries,
 			List<MapExistQuery> andExistQueries) {
+		this(andBoolQueries, orBoolQueries, andRangeQueries, orRangeQueries, andExistQueries, null);
+	}
+
+	public MapSearchQuery(List<MapAndBoolQuery> andBoolQueries, List<MapOrBoolQuery> orBoolQueries,
+			List<MapAndRangeQuery> andRangeQueries, List<MapOrRangeQuery> orRangeQueries,
+			List<MapExistQuery> andExistQueries, MapSearchParams searchParams) {
 		super();
 		this.andBoolQueries = andBoolQueries;
 		this.orBoolQueries = orBoolQueries;
 		this.andRangeQueries = andRangeQueries;
 		this.orRangeQueries = orRangeQueries;
 		this.andExistQueries = andExistQueries;
+		this.searchParams = searchParams;
 	}
 
 	public List<MapAndBoolQuery> getAndBoolQueries() {
@@ -75,11 +86,19 @@ public class MapSearchQuery {
 		this.andExistQueries = andExistQueries;
 	}
 
+	public MapSearchParams getSearchParams() {
+		return searchParams;
+	}
+
+	public void setSearchParams(MapSearchParams searchParams) {
+		this.searchParams = searchParams;
+	}
+
 	@Override
 	public String toString() {
 		return "MapSearchQuery [andBoolQueries=" + andBoolQueries + ", orBoolQueries=" + orBoolQueries
 				+ ", andRangeQueries=" + andRangeQueries + ", orRangeQueries=" + orRangeQueries + ", andExistQueries="
-				+ andExistQueries + "]";
+				+ andExistQueries + ", searchParams=" + searchParams.toString() + "]";
 	}
 
 }
