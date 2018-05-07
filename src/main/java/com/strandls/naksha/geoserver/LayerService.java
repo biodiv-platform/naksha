@@ -3,7 +3,11 @@ package com.strandls.naksha.geoserver;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.inject.Inject;
 import javax.script.ScriptContext;
@@ -51,7 +55,10 @@ public class LayerService {
 			context.setAttribute("dbname", NakshaConfig.getString(GEOSERVER_DBNAME), ScriptContext.ENGINE_SCOPE);
 			context.setAttribute("dbuser", NakshaConfig.getString(GEOSERVER_DBUSER), ScriptContext.ENGINE_SCOPE);
 			context.setAttribute("datapath", tmpDirPath, ScriptContext.ENGINE_SCOPE);
-			scriptEngine.eval("scripts/data_import.py", context);
+			Path scriptPath = Paths.get("scripts/data_import.py");
+			Reader scriptReader = Files.newBufferedReader(scriptPath);
+			scriptEngine.eval(scriptReader, context);
+
 		} catch (ScriptException e) {
 			logger.error("Error while uploading shp file", e);
 			throw e;

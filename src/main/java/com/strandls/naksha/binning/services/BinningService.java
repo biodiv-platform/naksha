@@ -5,6 +5,7 @@ import java.io.IOException;
 import javax.inject.Inject;
 
 import com.strandls.naksha.binning.models.GeojsonData;
+import com.strandls.naksha.es.models.MapBounds;
 import com.strandls.naksha.utils.GeoGridService;
 
 /**
@@ -18,10 +19,10 @@ public class BinningService {
 	@Inject
 	private GeojsonService geojsonService;
 
-	public GeojsonData squareBin(String index, String type, String geoField, Double east, Double west, Double north,
-			Double south, Double cellSideKm) throws IOException {
+	public GeojsonData squareBin(String index, String type, String geoField,
+			MapBounds bounds,Double cellSideKm) throws IOException {
 
-		double[][][] coordinatesList = GeoGridService.squareGrid(east, west, north, south, cellSideKm);
+		double[][][] coordinatesList = GeoGridService.squareGrid(bounds.getRight(), bounds.getLeft(), bounds.getTop(), bounds.getBottom(), cellSideKm);
 
 		return geojsonService.getGeojsonData(index, type, geoField, coordinatesList);
 	}

@@ -37,8 +37,7 @@ public class BinningController {
 
 		
 		try {
-			return service.squareBin(index, type, geoField,
-					bounds.getRight(), bounds.getLeft(), bounds.getTop(), bounds.getBottom(), cellSideKm);
+			return service.squareBin(index, type, geoField, bounds, cellSideKm);
 		} catch (IOException e) {
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
