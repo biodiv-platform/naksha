@@ -14,6 +14,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.strandls.naksha.binning.models.GeojsonData;
 import com.strandls.naksha.binning.services.BinningService;
+import com.strandls.naksha.es.models.MapBounds;
 
 /**
  * Controller for binning related services
@@ -31,17 +32,14 @@ public class BinningController {
 	public GeojsonData bin(@PathParam("index") String index,
 			@PathParam("type") String type,
 			@QueryParam("geoField") String geoField,
-			@QueryParam("east") Double east,
-			@QueryParam("west") Double west,
-			@QueryParam("north") Double north,
-			@QueryParam("south") Double south,
-			@QueryParam("cellSideKm") Double cellSideKm) {
+			@QueryParam("cellSideKm") Double cellSideKm,
+			MapBounds bounds) {
 
 		
 		try {
-			return service.squareBin(index, type, geoField, east, west, north, south, cellSideKm);
+			return service.squareBin(index, type, geoField,
+					bounds.getRight(), bounds.getLeft(), bounds.getTop(), bounds.getBottom(), cellSideKm);
 		} catch (IOException e) {
-			e.printStackTrace();
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
 	}

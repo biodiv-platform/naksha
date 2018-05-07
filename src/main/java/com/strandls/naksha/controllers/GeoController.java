@@ -43,7 +43,6 @@ public class GeoController {
 		try {
 			return service.getGeoWithinDocuments(index, type, geoField, top, left, bottom, right);
 		} catch (IOException e) {
-			e.printStackTrace();
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
 	}

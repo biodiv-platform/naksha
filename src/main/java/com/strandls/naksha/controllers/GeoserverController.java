@@ -134,6 +134,7 @@ public class GeoserverController {
         try {
 
             FormDataBodyPart formdata = multiPart.getField("shp");
+
             if (formdata == null) {
             	throw new WebApplicationException(Response.status(Response.Status.BAD_REQUEST)
                         .entity("Shp file not present").build());

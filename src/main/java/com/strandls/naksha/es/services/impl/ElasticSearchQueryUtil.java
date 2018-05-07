@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.ExistsQueryBuilder;
+import org.elasticsearch.index.query.MatchPhraseQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
@@ -13,10 +14,13 @@ import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.geogrid.GeoGridAggregationBuilder;
 
 import com.strandls.naksha.es.models.query.MapAndBoolQuery;
+import com.strandls.naksha.es.models.query.MapAndMatchPhraseQuery;
 import com.strandls.naksha.es.models.query.MapAndRangeQuery;
 import com.strandls.naksha.es.models.query.MapBoolQuery;
 import com.strandls.naksha.es.models.query.MapExistQuery;
+import com.strandls.naksha.es.models.query.MapMatchPhraseQuery;
 import com.strandls.naksha.es.models.query.MapOrBoolQuery;
+import com.strandls.naksha.es.models.query.MapOrMatchPhraseQuery;
 import com.strandls.naksha.es.models.query.MapOrRangeQuery;
 import com.strandls.naksha.es.models.query.MapQuery;
 import com.strandls.naksha.es.models.query.MapRangeQuery;
@@ -42,6 +46,11 @@ public class ElasticSearchQueryUtil {
 	
 	private QueryBuilder getRangeQueryBuilder(MapRangeQuery query) {
 		RangeQueryBuilder queryBuilder = QueryBuilders.rangeQuery(query.getKey()).from(query.getStart()).to(query.getEnd());
+		return query.getPath() != null ? getNestedQueryBuilder(query, queryBuilder) : queryBuilder;
+	}
+
+	private QueryBuilder getMatchPhraseQueryBuilder(MapMatchPhraseQuery query) {
+		MatchPhraseQueryBuilder queryBuilder = QueryBuilders.matchPhraseQuery(query.getKey(), query.getValue());
 		return query.getPath() != null ? getNestedQueryBuilder(query, queryBuilder) : queryBuilder;
 	}
 
@@ -107,6 +116,34 @@ public class ElasticSearchQueryUtil {
 		}
 	}
 
+	private void buildMatchPhraseQueries(List<MapAndMatchPhraseQuery> andQueries,
+			List<MapOrMatchPhraseQuery> orQueries, BoolQueryBuilder masterBoolQuery) {
+		BoolQueryBuilder boolQuery;
+
+		if (andQueries != null) {
+			boolQuery = QueryBuilders.boolQuery();
+			for (MapAndMatchPhraseQuery query : andQueries) {
+				if (query.getValue() != null)
+					boolQuery.must(getMatchPhraseQueryBuilder(query));
+				else
+					boolQuery.mustNot(getExistsQueryBuilder(query));
+			}
+			masterBoolQuery.must(boolQuery);
+		}
+
+		if (orQueries != null) {
+			boolQuery = QueryBuilders.boolQuery();
+			for (MapOrMatchPhraseQuery query : orQueries) {
+				if (query.getValue() != null)
+					boolQuery.should(getMatchPhraseQueryBuilder(query));
+				else
+					boolQuery.mustNot(getExistsQueryBuilder(query));
+			}
+			masterBoolQuery.must(boolQuery);
+		}
+
+	}
+
 	protected BoolQueryBuilder getBoolQueryBuilder(MapSearchQuery searchQuery) {
 
 		BoolQueryBuilder masterBoolQuery = QueryBuilders.boolQuery();
@@ -116,7 +153,7 @@ public class ElasticSearchQueryUtil {
 		buildBoolQueries(searchQuery.getAndBoolQueries(), searchQuery.getOrBoolQueries(), masterBoolQuery);
 		buildRangeQueries(searchQuery.getAndRangeQueries(), searchQuery.getOrRangeQueries(), masterBoolQuery);
 		buildExistsQueries(searchQuery.getAndExistQueries(), masterBoolQuery);
-		
+		buildMatchPhraseQueries(searchQuery.getAndMatchPhraseQueries(), searchQuery.getOrMatchPhraseQueries(), masterBoolQuery);
 		return masterBoolQuery;
 	}
 

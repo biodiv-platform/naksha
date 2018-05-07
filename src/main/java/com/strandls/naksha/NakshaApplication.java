@@ -3,6 +3,7 @@ package com.strandls.naksha;
 import javax.ws.rs.ApplicationPath;
 
 import org.glassfish.hk2.api.ServiceLocator;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.spi.Container;
 import org.glassfish.jersey.server.spi.ContainerLifecycleListener;
@@ -33,7 +34,8 @@ public class NakshaApplication extends ResourceConfig {
 						.getAttribute(Injector.class.getName());
 
 				servletContainer.reload(new ResourceConfig()
-						.packages("com.strandls.naksha.controllers"));
+						.packages("com.strandls.naksha.controllers")
+						.register(MultiPartFeature.class));
 
 				ServiceLocator serviceLocator = container.getApplicationHandler().getServiceLocator();
 

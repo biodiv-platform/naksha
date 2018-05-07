@@ -150,19 +150,15 @@ public class NakshaController {
 			@PathParam("type") String type,
 			@QueryParam("key") String key,
 			@QueryParam("value") String value,
-			@QueryParam("from") Integer from,
-			@QueryParam("limit") Integer limit,
-			@QueryParam("sortOn") String sortOn,
-			@QueryParam("sortType") MapSortType sortType,
 			@QueryParam("geoAggregationField") String geoAggregationField,
-			@QueryParam("geoAggegationPrecision") Integer geoAggegationPrecision) {
+			@QueryParam("geoAggegationPrecision") Integer geoAggegationPrecision,
+			MapSearchParams searchParams) {
 		
 		if(key == null || value == null)
 			throw new WebApplicationException(Response.status(Status.BAD_REQUEST)
 					.entity("key or value not specified").build());
 		
 		try {
-			MapSearchParams searchParams = new MapSearchParams(from, limit, sortOn, sortType);
 			return elasticSearchService.termSearch(index, type, key, value, searchParams,
 					geoAggregationField, geoAggegationPrecision);
 		} catch (IOException e) {
@@ -248,34 +244,24 @@ public class NakshaController {
 	@Produces(MediaType.APPLICATION_JSON)
 	public MapResponse search(@PathParam("index") String index,
 			@PathParam("type") String type,
-			@QueryParam("from") Integer from,
-			@QueryParam("limit") Integer limit,
-			@QueryParam("sortOn") String sortOn,
-			@QueryParam("sortType") MapSortType sortType,
 			@QueryParam("geoAggregationField") String geoAggregationField,
 			@QueryParam("geoAggegationPrecision") Integer geoAggegationPrecision,
 			@QueryParam("onlyFilteredAggregation") Boolean onlyFilteredAggregation,
-			@QueryParam("top") Double top,
-			@QueryParam("left") Double left,
-			@QueryParam("bottom") Double bottom,
-			@QueryParam("right") Double right,
 			MapSearchQuery query) {
 		
+		MapSearchParams searchParams = query.getSearchParams();
+		MapBounds bounds = searchParams.getMapBounds();
+
 		if(onlyFilteredAggregation != null && onlyFilteredAggregation &&
-				(top == null || bottom == null || left == null || right == null))
+				bounds == null)
 			throw new WebApplicationException(Response.status(Status.BAD_REQUEST)
 					.entity("Bounds not specified for filtering").build());
-		
-		MapBounds bounds = null;
-		if(top != null && left != null && bottom != null && right != null)
-			bounds = new MapBounds(top, left, bottom, right);
 		
 		if(bounds != null && geoAggregationField == null)
 			throw new WebApplicationException(Response.status(Status.BAD_REQUEST)
 					.entity("Location field not specified for bounds").build());
 
 		try {
-			MapSearchParams searchParams = new MapSearchParams(from, limit, sortOn, sortType);
 			return elasticSearchService.search(index, type, query, searchParams,
 					geoAggregationField, geoAggegationPrecision, onlyFilteredAggregation);
 		} catch (IOException e) {
