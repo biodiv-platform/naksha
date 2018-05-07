@@ -29,6 +29,7 @@ public class MapSearchParams {
 	 */
 	private MapBounds mapBounds;
 
+    public MapSearchParams() {}
 	public MapSearchParams(Integer from, Integer limit, String sortOn, MapSortType sortType) {
 		super();
 		this.from = from;
