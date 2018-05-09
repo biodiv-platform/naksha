@@ -130,6 +130,7 @@ public class NakshaController {
 	
 	@POST
 	@Path("/bulk-upload/{index}/{type}")
+	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<MapQueryResponse> bulkUpload(@PathParam("index") String index,
 			@PathParam("type") String type,
@@ -142,7 +143,31 @@ public class NakshaController {
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
 	}
-	
+
+	@PUT
+	@Path("/bulk-update/{index}/{type}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public List<MapQueryResponse> bulkUpdate(@PathParam("index") String index,
+			@PathParam("type") String type,
+			List<Map<String, Object> > updateDocs) {
+
+		if(updateDocs == null)
+			throw new WebApplicationException(Response.status(Status.BAD_REQUEST).entity("No documents to update").build());
+
+		for(Map<String, Object> doc : updateDocs) {
+			if(!doc.containsKey("id"))
+				throw new WebApplicationException(Response.status(Status.BAD_REQUEST).entity("Id not present of the document to be updated").build());
+		}
+
+		try {
+			return elasticSearchService.bulkUpdate(index, type, updateDocs);
+		} catch (IOException e) {
+			logger.error(e.getMessage());
+			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
+		}
+	}
+
 	@GET
 	@Path("/term-search/{index}/{type}")
 	@Produces(MediaType.APPLICATION_JSON)

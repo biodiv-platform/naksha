@@ -85,7 +85,7 @@ public interface ElasticSearchService {
 	MapQueryResponse delete(String index, String type, String documentId) throws IOException;
 
 	/**
-	 * Bulk upload the the documents in the form of json array
+	 * Bulk upload the the documents that are in the form of json array
 	 * 
 	 * @param index
 	 *            the index of the documents
@@ -98,6 +98,21 @@ public interface ElasticSearchService {
 	 *             throws {@link IOException}
 	 */
 	List<MapQueryResponse> bulkUpload(String index, String type, String jsonArray) throws IOException;
+
+	/**
+	 * Bulk update the the documents that are provided as list of map of new values for fields
+	 *
+	 * @param index
+	 *            the index of the documents
+	 * @param type
+	 *            the type of the documents
+	 * @param updateDocs
+	 *            List of map of fields and corresponding new values
+	 * @return list of {@link MapQueryResponse} for individual json documents
+	 * @throws IOException
+	 *             throws {@link IOException}
+	 */
+	List<MapQueryResponse> bulkUpdate(String index, String type, List<Map<String, Object> > updateDocs) throws IOException;
 
 	/**
 	 * Search for a particular key value pair

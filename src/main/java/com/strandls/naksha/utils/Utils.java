@@ -8,6 +8,8 @@ import java.util.Collection;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
@@ -21,15 +23,18 @@ public class Utils {
 
 	private static final char CSV_SEPARATOR = ',';
 
+	private static final Logger logger = LoggerFactory.getLogger(Utils.class);
+
+	private Utils() {}
+
 	public static Document convertStringToDocument(String xmlStr) {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder;
 		try {
 			builder = factory.newDocumentBuilder();
-			Document doc = builder.parse(new InputSource(new StringReader(xmlStr)));
-			return doc;
+			return builder.parse(new InputSource(new StringReader(xmlStr)));
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("Error while reading xml source string- {}", e);
 		}
 		return null;
 	}

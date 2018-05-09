@@ -268,6 +268,54 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 		return responses;
 	}
 
+	@Override
+	public List<MapQueryResponse> bulkUpdate(String index, String type, List<Map<String, Object>> updateDocs)
+			throws IOException {
+
+		logger.info("Trying to bulk update index: {}, type: {}", index, type);
+
+		BulkRequest request = new BulkRequest();
+
+		for (Map<String, Object> doc : updateDocs)
+			request.add(new UpdateRequest(index, type, doc.get("id").toString()).doc(doc));
+
+		BulkResponse bulkResponse = client.bulk(request);
+
+		List<MapQueryResponse> responses = new ArrayList<>();
+
+		for (BulkItemResponse bulkItemResponse : bulkResponse) {
+
+			StringBuilder failureReason = new StringBuilder();
+			MapQueryStatus queryStatus;
+
+			if (bulkItemResponse.isFailed()) {
+				failureReason.append(bulkItemResponse.getFailureMessage());
+				queryStatus = MapQueryStatus.ERROR;
+			} else {
+				UpdateResponse updateResponse = bulkItemResponse.getResponse();
+				ReplicationResponse.ShardInfo shardInfo = updateResponse.getShardInfo();
+
+				if (shardInfo.getFailed() > 0) {
+
+					for (ReplicationResponse.ShardInfo.Failure failure : shardInfo.getFailures()) {
+						failureReason.append(failure.reason());
+						failureReason.append(";");
+					}
+				}
+
+				queryStatus = MapQueryStatus.valueOf(updateResponse.getResult().name());
+			}
+
+			logger.info(" For index: {}, type: {}, bulk update id: {}, the status is {}", index, type,
+					bulkItemResponse.getId(), queryStatus);
+
+			responses .add(new MapQueryResponse(queryStatus, failureReason.toString()));
+		}
+
+		return responses;
+
+	}
+
 	private MapResponse querySearch(String index, String type, QueryBuilder query, MapSearchParams searchParams,
 			String geoAggregationField, Integer geoAggegationPrecision) throws IOException {
 
