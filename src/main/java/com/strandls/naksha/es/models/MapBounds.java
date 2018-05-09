@@ -15,6 +15,8 @@ public class MapBounds {
 	
 	private double right;
 
+	public MapBounds() {}
+
 	public MapBounds(double top, double left, double bottom, double right) {
 		super();
 		this.top = top;
