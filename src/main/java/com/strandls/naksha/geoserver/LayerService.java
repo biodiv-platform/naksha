@@ -34,7 +34,8 @@ public class LayerService {
 
 	public void uploadShpLayer(InputStream shpInputStream, InputStream dbfInputStream, InputStream metadataInputStream) throws ScriptException, IOException {
 
-		String tmpDirPath = NakshaConfig.getString(TEMP_DIR_PATH) + File.separator + System.currentTimeMillis();
+		String dataPath = NakshaConfig.getString(TEMP_DIR_PATH) + File.separator + System.currentTimeMillis();
+		String tmpDirPath = dataPath + File.separator + "final";
 		String shpFilePath = tmpDirPath + File.separator + "shpFile.shp";
 		File shpFile = new File(shpFilePath);
 		String dbfFilePath = tmpDirPath + File.separator + "dbfFile.dbf";
@@ -45,7 +46,7 @@ public class LayerService {
 		StringWriter writer = new StringWriter();
 		ScriptContext context = new SimpleScriptContext();
 		context.setWriter(writer);
-		
+
 		logger.info("Trying to upload shp at {}", tmpDirPath);
 		try {
 			FileUtils.copyInputStreamToFile(shpInputStream, shpFile);

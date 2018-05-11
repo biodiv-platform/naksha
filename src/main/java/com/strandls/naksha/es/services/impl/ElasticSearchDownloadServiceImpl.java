@@ -42,7 +42,8 @@ public class ElasticSearchDownloadServiceImpl extends ElasticSearchQueryUtil imp
 	private ElasticSearchClient client;
 
 	public enum DownloadFileType {
-		CSV
+		CSV,
+		JSON
 	}
 
 	/*
@@ -56,7 +57,7 @@ public class ElasticSearchDownloadServiceImpl extends ElasticSearchQueryUtil imp
 	@Override
 	public String downloadSearch(String index, String type, MapSearchQuery query, String filePath, String fileType)
 			throws IOException {
-		logger.info("Download request received for index: {}, type: {}", index, type);
+		logger.info("Download request received for index: {}, type: {}, fileType: {}", index, type, fileType);
 
 		SearchRequest searchRequest = getDownloadSearchRequest(query, index, type);
 		DownloadFileType downloadFileType = fileType != null ? DownloadFileType.valueOf(fileType)
@@ -66,17 +67,38 @@ public class ElasticSearchDownloadServiceImpl extends ElasticSearchQueryUtil imp
 
 		try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zipFile))) {
 
-			ZipEntry e = new ZipEntry("download_search." + fileType);
+			ZipEntry e = new ZipEntry("download_search." + downloadFileType.toString().toLowerCase());
 			zipOut.putNextEntry(e);
 
 			if (DownloadFileType.CSV == downloadFileType) {
 				downloadCSV(searchRequest, zipOut);
+			}
+			else if (DownloadFileType.JSON == downloadFileType) {
+				downloadJson(searchRequest, zipOut);
 			}
 		}
 
 		logger.info("Download completed for index: {}, type: {}, file: {}", index, type, zipFile.getAbsolutePath());
 
 		return zipFile.getAbsolutePath();
+	}
+
+	private void downloadJson(SearchRequest searchRequest, ZipOutputStream out) throws IOException {
+
+		SearchResponse searchResponse = client.search(searchRequest);
+
+		do {
+
+			for (SearchHit hit : searchResponse.getHits().getHits())
+				out.write(hit.getSourceAsString().getBytes());
+
+			SearchScrollRequest request = new SearchScrollRequest(searchResponse.getScrollId());
+			request.scroll(new TimeValue(60000));
+
+			searchResponse = client.searchScroll(request);
+
+		} while (searchResponse.getHits().getHits().length != 0);
+
 	}
 
 	private void downloadCSV(SearchRequest searchRequest, ZipOutputStream out) throws IOException {
