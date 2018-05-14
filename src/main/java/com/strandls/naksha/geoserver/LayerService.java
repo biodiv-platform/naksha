@@ -47,7 +47,7 @@ public class LayerService {
 		ScriptContext context = new SimpleScriptContext();
 		context.setWriter(writer);
 
-		logger.info("Trying to upload shp at {}", tmpDirPath);
+		logger.info("Trying to upload shp at {}", dataPath);
 		try {
 			FileUtils.copyInputStreamToFile(shpInputStream, shpFile);
 			FileUtils.copyInputStreamToFile(dbfInputStream, dbfFile);
@@ -55,7 +55,7 @@ public class LayerService {
 			
 			context.setAttribute("dbname", NakshaConfig.getString(GEOSERVER_DBNAME), ScriptContext.ENGINE_SCOPE);
 			context.setAttribute("dbuser", NakshaConfig.getString(GEOSERVER_DBUSER), ScriptContext.ENGINE_SCOPE);
-			context.setAttribute("datapath", tmpDirPath, ScriptContext.ENGINE_SCOPE);
+			context.setAttribute("datapath", dataPath, ScriptContext.ENGINE_SCOPE);
 			Path scriptPath = Paths.get("scripts/data_import.py");
 			Reader scriptReader = Files.newBufferedReader(scriptPath);
 			scriptEngine.eval(scriptReader, context);
