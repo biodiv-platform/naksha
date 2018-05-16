@@ -1,7 +1,6 @@
 package com.strandls.naksha.controllers;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +15,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -129,7 +129,7 @@ public class GeoserverController {
 	@Path("/uploadshp")
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public void uploadShp(FormDataMultiPart multiPart) throws IOException {
+    public void uploadShp(FormDataMultiPart multiPart) {
 
         try {
 
@@ -140,6 +140,9 @@ public class GeoserverController {
                         .entity("Shp file not present").build());
             }
             InputStream shpInputStream = formdata.getValueAs(InputStream.class);
+            String shpFileName = formdata.getContentDisposition().getFileName();
+            shpFileName += ".";
+            String layerName = shpFileName.split(".")[0];
 
             formdata = multiPart.getField("dbf");
             if (formdata == null) {
@@ -155,9 +158,9 @@ public class GeoserverController {
             }
             InputStream metadataInputStream = formdata.getValueAs(InputStream.class);
 
-            layerService.uploadShpLayer(shpInputStream, dbfInputStream, metadataInputStream);
+            layerService.uploadShpLayer(shpInputStream, dbfInputStream, metadataInputStream, layerName);
         } catch (Exception e) {
-            throw new IOException(e);
+			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
         }
     }
 }

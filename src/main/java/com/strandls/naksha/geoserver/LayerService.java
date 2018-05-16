@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,13 +34,14 @@ public class LayerService {
 	private static final String GEOSERVER_DBNAME = "geoserver.dbname";
 	private static final String GEOSERVER_DBUSER = "geoserver.dbuser";
 
-	public void uploadShpLayer(InputStream shpInputStream, InputStream dbfInputStream, InputStream metadataInputStream) throws ScriptException, IOException {
+	public void uploadShpLayer(InputStream shpInputStream, InputStream dbfInputStream, InputStream metadataInputStream,
+			String layerName) throws ScriptException, IOException, URISyntaxException {
 
 		String dataPath = NakshaConfig.getString(TEMP_DIR_PATH) + File.separator + System.currentTimeMillis();
 		String tmpDirPath = dataPath + File.separator + "final";
-		String shpFilePath = tmpDirPath + File.separator + "shpFile.shp";
+		String shpFilePath = tmpDirPath + File.separator + layerName + ".shp";
 		File shpFile = new File(shpFilePath);
-		String dbfFilePath = tmpDirPath + File.separator + "dbfFile.dbf";
+		String dbfFilePath = tmpDirPath + File.separator + layerName + ".dbf";
 		File dbfFile = new File(dbfFilePath);
 		String metadataFilePath = tmpDirPath + File.separator + "metadata.txt";
 		File metadataFile = new File(metadataFilePath);
@@ -56,7 +59,9 @@ public class LayerService {
 			context.setAttribute("dbname", NakshaConfig.getString(GEOSERVER_DBNAME), ScriptContext.ENGINE_SCOPE);
 			context.setAttribute("dbuser", NakshaConfig.getString(GEOSERVER_DBUSER), ScriptContext.ENGINE_SCOPE);
 			context.setAttribute("datapath", dataPath, ScriptContext.ENGINE_SCOPE);
-			Path scriptPath = Paths.get("scripts/data_import.py");
+
+			URI scriptUri = LayerService.class.getClassLoader().getResource("scripts/data_import.py").toURI();
+			Path scriptPath = Paths.get(scriptUri);
 			Reader scriptReader = Files.newBufferedReader(scriptPath);
 			scriptEngine.eval(scriptReader, context);
 

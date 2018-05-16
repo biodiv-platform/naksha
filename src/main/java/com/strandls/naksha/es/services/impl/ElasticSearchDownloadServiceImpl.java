@@ -61,7 +61,7 @@ public class ElasticSearchDownloadServiceImpl extends ElasticSearchQueryUtil imp
 
 		SearchRequest searchRequest = getDownloadSearchRequest(query, index, type);
 		DownloadFileType downloadFileType = fileType != null ? DownloadFileType.valueOf(fileType)
-				: DownloadFileType.CSV;
+				: DownloadFileType.JSON;
 
 		File zipFile = new File(filePath + File.separator + System.currentTimeMillis() + ".zip");
 
@@ -90,7 +90,7 @@ public class ElasticSearchDownloadServiceImpl extends ElasticSearchQueryUtil imp
 		do {
 
 			for (SearchHit hit : searchResponse.getHits().getHits())
-				out.write(hit.getSourceAsString().getBytes());
+				out.write((hit.getSourceAsString()+"\n").getBytes());
 
 			SearchScrollRequest request = new SearchScrollRequest(searchResponse.getScrollId());
 			request.scroll(new TimeValue(60000));
