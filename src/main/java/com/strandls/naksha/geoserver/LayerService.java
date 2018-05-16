@@ -40,7 +40,7 @@ public class LayerService {
 		File shpFile = new File(shpFilePath);
 		String dbfFilePath = tmpDirPath + File.separator + "dbfFile.dbf";
 		File dbfFile = new File(dbfFilePath);
-		String metadataFilePath = tmpDirPath + File.separator + "metadataFile.txt";
+		String metadataFilePath = tmpDirPath + File.separator + "metadata.txt";
 		File metadataFile = new File(metadataFilePath);
 
 		StringWriter writer = new StringWriter();
