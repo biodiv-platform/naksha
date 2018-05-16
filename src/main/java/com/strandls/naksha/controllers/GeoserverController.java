@@ -158,7 +158,14 @@ public class GeoserverController {
             }
             InputStream metadataInputStream = formdata.getValueAs(InputStream.class);
 
-            layerService.uploadShpLayer(shpInputStream, dbfInputStream, metadataInputStream, layerName);
+			formdata = multiPart.getField("shx");
+			if (formdata == null) {
+				throw new WebApplicationException(
+						Response.status(Response.Status.BAD_REQUEST).entity("Shx file not present").build());
+			}
+			InputStream shxInputStream = formdata.getValueAs(InputStream.class);
+
+            layerService.uploadShpLayer(shpInputStream, dbfInputStream, metadataInputStream, shxInputStream, layerName);
         } catch (Exception e) {
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
         }

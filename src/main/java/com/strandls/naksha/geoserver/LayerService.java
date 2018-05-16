@@ -35,7 +35,7 @@ public class LayerService {
 	private static final String GEOSERVER_DBUSER = "geoserver.dbuser";
 
 	public void uploadShpLayer(InputStream shpInputStream, InputStream dbfInputStream, InputStream metadataInputStream,
-			String layerName) throws ScriptException, IOException, URISyntaxException {
+			InputStream shxInputStream, String layerName) throws ScriptException, IOException, URISyntaxException {
 
 		String dataPath = NakshaConfig.getString(TEMP_DIR_PATH) + File.separator + System.currentTimeMillis();
 		String tmpDirPath = dataPath + File.separator + "final";
@@ -45,6 +45,8 @@ public class LayerService {
 		File dbfFile = new File(dbfFilePath);
 		String metadataFilePath = tmpDirPath + File.separator + "metadata.txt";
 		File metadataFile = new File(metadataFilePath);
+		String shxFilePath = tmpDirPath + File.separator + layerName + ".shx";
+		File shxFile = new File(shxFilePath);
 
 		StringWriter writer = new StringWriter();
 		ScriptContext context = new SimpleScriptContext();
@@ -55,7 +57,8 @@ public class LayerService {
 			FileUtils.copyInputStreamToFile(shpInputStream, shpFile);
 			FileUtils.copyInputStreamToFile(dbfInputStream, dbfFile);
 			FileUtils.copyInputStreamToFile(metadataInputStream, metadataFile);
-			
+			FileUtils.copyInputStreamToFile(shxInputStream, shxFile);
+
 			context.setAttribute("dbname", NakshaConfig.getString(GEOSERVER_DBNAME), ScriptContext.ENGINE_SCOPE);
 			context.setAttribute("dbuser", NakshaConfig.getString(GEOSERVER_DBUSER), ScriptContext.ENGINE_SCOPE);
 			context.setAttribute("datapath", dataPath, ScriptContext.ENGINE_SCOPE);
