@@ -20,7 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 public class NakshaResponseFilter implements ContainerResponseFilter {
 
 	public static final String ALLOWED_METHODS = "GET, POST, PUT, DELETE, OPTIONS, HEAD";
-	public static final int MAX_AGE = 42 * 60 * 60;
 	public static final String DEFAULT_ALLOWED_HEADERS = "origin, content-type, accept, authorization, X-Requested-With, X-Auth-Token, X-AppKey";
 
 	@Override
@@ -39,6 +38,8 @@ public class NakshaResponseFilter implements ContainerResponseFilter {
 
 		headers.add("Access-Control-Allow-Headers", getRequestedAllowedHeaders(requestContext));
 		headers.add("Access-Control-Allow-Methods", ALLOWED_METHODS);
+		headers.add("X-Frame-Options", "SAMEORIGIN");
+		headers.add("X-XSS-Protection", "1; mode=block");
 	}
 
 	private String getRequestedAllowedHeaders(ContainerRequestContext responseContext) {
