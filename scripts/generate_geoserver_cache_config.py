@@ -62,7 +62,10 @@ footer_xml_tpl = """  <gutter>0</gutter>
 </GeoServerTileLayer>
 """
 
+cur = None
+
 def create_cache_xml(tablename):
+    global cur
     # cont_type = ['bigint', 'integer', 'numeric', 'smallint', 'double precision', 'real']
     # 'numeric' type data is not yet supported by geoserver for vector tiles. hence disabling
     # style generation for such columns
@@ -89,17 +92,17 @@ def create_cache_xml(tablename):
     conf_xml_file.write(footer_xml_tpl)
     conf_xml_file.close()
 
-tables = []
-
-try:
-    conn = psycopg2.connect("dbname='ibp' user='biodiv' host='localhost' password='biodiv'")
-except:
+def generate_cache_config(tables, geoserver_data_dir_path):
+  global cur
+  try:
+    conn = psycopg2.connect("dbname='ibp' user='biodiv' host='localhost' password='prharasr'")
+  except:
     print "unable to connect to the database"
 
-cur = conn.cursor()
+  cur = conn.cursor()
 
-os.system("mkdir " + "cache_config")
-for tablename in tables:
+  os.system("mkdir " + "cache_config")
+  for tablename in tables:
     print 'layer: ' + tablename
     create_cache_xml(tablename)
-    os.system("mv LayerInfoImpl-* cache_config/")
+    os.system("mv LayerInfoImpl-* " + geoserver_data_dir_path + "/gwc-layers/")

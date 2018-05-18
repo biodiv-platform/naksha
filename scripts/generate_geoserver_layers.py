@@ -58,8 +58,10 @@ layer_xml_tpl="""<layer>
 </layer>
 """
 
+cur = None
+
 def get_keywords_xml(tablename):
-    
+    global cur
     keywords_xml = ''
 
     layer_keywords_query = 'select tags from "Meta_Layer" where layer_tablename=\'' + tablename + '\''
@@ -78,6 +80,7 @@ def get_keywords_xml(tablename):
 
 def get_bounding_box(tablename):    
 
+    global cur
     bbox_xml = ''
 
     layer_bbox_query = 'select min(st_xMin(__mlocate__topology)), max(st_xMax(__mlocate__topology)), min(st_yMin(__mlocate__topology)), max(st_yMax(__mlocate__topology)) from ' + tablename
@@ -96,6 +99,7 @@ def get_bounding_box(tablename):
 
 def create_featuretype_xml(tablename):
 
+    global cur
     layer_info_query = 'select layer_name, layer_description from "Meta_Layer" where layer_tablename=\'' + tablename + '\''
     cur.execute(layer_info_query)
 
@@ -119,6 +123,7 @@ def create_featuretype_xml(tablename):
     featuretype_xml_file.close()
 
 def create_styles_xml(tablename):
+    global cur
     # cont_type = ['bigint', 'integer', 'numeric', 'smallint', 'double precision', 'real']
     # 'numeric' type data is not yet supported by geoserver for vector tiles. hence disabling
     # style generation for such columns
@@ -136,6 +141,7 @@ def create_styles_xml(tablename):
 
 def create_layer_xml(tablename):
 
+    global cur
     layer_info_query = 'select color_by, title_column, layer_type from "Meta_Layer" where layer_tablename=\'' + tablename + '\''
     cur.execute(layer_info_query)
 
@@ -166,18 +172,19 @@ def create_layer_xml(tablename):
     layer_xml_file.write(layer_xml)
     layer_xml_file.close()
 
-try:
-    conn = psycopg2.connect("dbname='ibp' user='biodiv' host='localhost' password='biodiv'")
-except:
+def generate_layer_xml(tables, geoserver_data_dir_path):
+  global cur
+  try:
+    conn = psycopg2.connect("dbname='ibp' user='biodiv' host='localhost' password='prharasr'")
+  except:
     print "unable to connect to the database"
 
-cur = conn.cursor()
+  cur = conn.cursor()
 
-tables = []
-
-for tablename in tables:
+  for tablename in tables:
     print 'layer: ' + tablename
-    os.system("mkdir " + "layers/" + tablename)
+    os.system("mkdir -p " + "layers/" + tablename)
     create_featuretype_xml(tablename)
     create_layer_xml(tablename)
-    os.system("mv layer.xml featuretype.xml " + "layers/" + tablename)
+    os.system("mv layer.xml featuretype.xml layers/" + tablename)
+    os.system("mv layers/" + tablename + " " + geoserver_data_dir_path + "/workspaces/biodiv/ibp/")

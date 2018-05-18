@@ -276,6 +276,7 @@ footer_tpl = """
 
 
 golden_ratio_conjugate = 0.618033988749895
+cur = None
 
 def get_rand_color():
     rnd = random.randint(150, 400)
@@ -374,6 +375,7 @@ def create_style_files(tablename, property_title, property_name, property_min, p
     json_file.close()
 
 def create_categorical_style_files(tablename, property_title, property_name, layer_type, col_type):
+    global cur
     cat_values_query = "select distinct(\"" + property_name + "\") from " + tablename
     cur.execute(cat_values_query)
     resultset = cur.fetchall()
@@ -425,28 +427,30 @@ def create_categorical_style_files(tablename, property_title, property_name, lay
 
 def get_column_name(tablename, property_name):
 
+    global cur
     col_description_query = "select col_description((select oid from pg_class where relname = '" + tablename + "'), (select ordinal_position from information_schema.columns where table_name='" + tablename + "' and column_name='" + property_name + "'))"
     cur.execute(col_description_query)
     column_name = cur.fetchone()[0];
 
     return column_name
 
-
-try:
-    conn = psycopg2.connect("dbname='ibp' user='biodiv' host='localhost' password='biodiv'")
-except:
+def generate_style(tables, geoserver_data_dir_path):
+  global cur
+  try:
+    conn = psycopg2.connect("dbname='ibp' user='biodiv' host='localhost' password='prharasr'")
+  except:
     print "unable to connect to the database"
 
-cur = conn.cursor()
+  cur = conn.cursor()
 
-tables = []
+  #tables = ['lyr_419_assam_census_urban_2011']
 
-# cont_type = ['bigint', 'integer', 'numeric', 'smallint', 'double precision', 'real']
-# 'numeric' type data is not yet supported by geoserver for vector tiles. hence disabling
-# style generation for such columns
-cont_type = ['bigint', 'integer', 'smallint', 'double precision', 'real']
+  # cont_type = ['bigint', 'integer', 'numeric', 'smallint', 'double precision', 'real']
+  # 'numeric' type data is not yet supported by geoserver for vector tiles. hence disabling
+  # style generation for such columns
+  cont_type = ['bigint', 'integer', 'smallint', 'double precision', 'real']
 
-for tablename in tables:
+  for tablename in tables:
     print "layer: " + tablename
     meta_layer_query = 'select color_by, layer_type from "Meta_Layer" where layer_tablename=\'' + tablename + '\''
     cur.execute(meta_layer_query)
@@ -474,5 +478,6 @@ for tablename in tables:
                 if minimum != None and maximum != None:
                     create_style_files(tablename, column_name, row[0], minimum, maximum, 5, layer_type, col_type)
 
-os.system("mkdir styles")
-os.system("mv *.xml *.sld *.json styles")
+  print os.system("pwd")
+  #os.system("mkdir styles")
+  os.system("mv *.xml *.sld *.json " + geoserver_data_dir_path + "/styles")
