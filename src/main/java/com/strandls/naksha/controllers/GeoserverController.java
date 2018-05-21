@@ -129,7 +129,7 @@ public class GeoserverController {
 	@Path("/uploadshp")
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public void uploadShp(FormDataMultiPart multiPart) {
+    public int uploadShp(FormDataMultiPart multiPart) {
 
         try {
 
@@ -165,7 +165,7 @@ public class GeoserverController {
 			}
 			InputStream shxInputStream = formdata.getValueAs(InputStream.class);
 
-            layerService.uploadShpLayer(shpInputStream, dbfInputStream, metadataInputStream, shxInputStream, layerName);
+            return layerService.uploadShpLayer(shpInputStream, dbfInputStream, metadataInputStream, shxInputStream, layerName);
         } catch (Exception e) {
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
         }

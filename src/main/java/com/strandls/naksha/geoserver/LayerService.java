@@ -26,7 +26,7 @@ public class LayerService {
 	private static final String GEOSERVER_DBNAME = "geoserver.dbname";
 	private static final String GEOSERVER_DBUSER = "geoserver.dbuser";
 
-	public void uploadShpLayer(InputStream shpInputStream, InputStream dbfInputStream, InputStream metadataInputStream,
+	public int uploadShpLayer(InputStream shpInputStream, InputStream dbfInputStream, InputStream metadataInputStream,
 			InputStream shxInputStream, String layerName) throws IOException {
 
 		String dataPath = NakshaConfig.getString(TEMP_DIR_PATH) + File.separator + System.currentTimeMillis();
@@ -48,15 +48,21 @@ public class LayerService {
 			FileUtils.copyInputStreamToFile(metadataInputStream, metadataFile);
 			FileUtils.copyInputStreamToFile(shxInputStream, shxFile);
 
-			String dbname = NakshaConfig.getString(GEOSERVER_DBNAME);
-			String dbuser = NakshaConfig.getString(GEOSERVER_DBUSER);
-			p = Runtime.getRuntime().exec("python scripts/data_import.py " + dbname + " " + dbuser + " " + dataPath);
+			String command = getCommand(dataPath);
+			p = Runtime.getRuntime().exec(command);
 
 		} catch (IOException e) {
 			logger.error("Error while creating data files.", e);
 			throw e;
 		}
 
+		logScriptOutput(p);
+		logger.info("Finished upload shp at {}", tmpDirPath);
+
+		return p.exitValue();
+	}
+
+	private void logScriptOutput(Process p) throws IOException {
 		BufferedReader stdInput = new BufferedReader(new
                 InputStreamReader(p.getInputStream()));
 		BufferedReader stdError = new BufferedReader(new
@@ -68,8 +74,25 @@ public class LayerService {
         while ((s = stdError.readLine()) != null) {
             logger.error(s);
         }
+	}
 
-		logger.info("Finished upload shp at {}", tmpDirPath);
+	private String getCommand(String dataPath) {
+		String dbname = NakshaConfig.getString(GEOSERVER_DBNAME);
+		String dbuser = NakshaConfig.getString(GEOSERVER_DBUSER);
+		String scriptPath = LayerService.class.getClassLoader().getResource("scripts/data_import.py").getPath();
+
+		StringBuilder builder = new StringBuilder();
+		builder.append("python");
+		builder.append(" ");
+		builder.append(scriptPath);
+		builder.append(" ");
+		builder.append(dbname);
+		builder.append(" ");
+		builder.append(dbuser);
+		builder.append(" ");
+		builder.append(dataPath);
+
+		return builder.toString();
 	}
 
 }
