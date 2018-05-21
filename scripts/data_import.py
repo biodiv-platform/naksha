@@ -11,6 +11,11 @@ datapath = sys.argv[3]
 theme = ''
 if(len(sys.argv) == 5):
         theme = sys.argv[4]
+
+geoserver_data_dir_path = '/apps/biodiv/geoserver_data_dir_new'
+tmp_dir_path = '/tmp/map_uploads'
+os.chdir(tmp_dir_path);
+
 def import_layers(dbname, dbuser, pth, sql_file_name):
     global DBNAME, DBUSER
     DBNAME = dbname
