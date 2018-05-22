@@ -142,7 +142,7 @@ public class GeoserverController {
             InputStream shpInputStream = formdata.getValueAs(InputStream.class);
             String shpFileName = formdata.getContentDisposition().getFileName();
             shpFileName += ".";
-            String layerName = shpFileName.split("\\.")[0];
+            String layerName = shpFileName.split("\\.")[0].toLowerCase();
 
             formdata = multiPart.getField("dbf");
             if (formdata == null) {
