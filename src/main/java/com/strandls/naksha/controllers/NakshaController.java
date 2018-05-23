@@ -168,7 +168,7 @@ public class NakshaController {
 		}
 	}
 
-	@GET
+	@POST
 	@Path("/term-search/{index}/{type}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public MapResponse search(@PathParam("index") String index,

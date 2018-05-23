@@ -2,7 +2,7 @@ package com.strandls.naksha.controllers;
 
 import java.io.IOException;
 
-import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -26,7 +26,7 @@ public class BinningController {
 
 	BinningService service = new BinningService();
 	
-	@GET
+	@POST
 	@Path("/square/{index}/{type}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public GeojsonData bin(@PathParam("index") String index,

@@ -23,9 +23,11 @@ import com.google.inject.servlet.GuiceServletContextListener;
 import com.google.inject.servlet.ServletModule;
 import com.strandls.naksha.binning.services.BinningModule;
 import com.strandls.naksha.dao.DAOFactory;
+import com.strandls.naksha.dao.jdbc.DAOModule;
 import com.strandls.naksha.es.ElasticSearchClient;
 import com.strandls.naksha.es.services.impl.ESModule;
 import com.strandls.naksha.geoserver.GeoserverModule;
+import com.strandls.naksha.layers.LayersModule;
 
 public class NakshaServeletContextListener extends GuiceServletContextListener {
 
@@ -73,7 +75,7 @@ public class NakshaServeletContextListener extends GuiceServletContextListener {
 						RestClient.builder(HttpHost.create(NakshaConfig.getString("es.url"))));
 				bind(ElasticSearchClient.class).toInstance(esClient);
 			}
-		}, new ESModule(), new BinningModule(), new GeoserverModule());
+		}, new ESModule(), new BinningModule(), new GeoserverModule(), new LayersModule(), new DAOModule());
 	}
 
 	@Override

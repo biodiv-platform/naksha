@@ -8,6 +8,5 @@ public class GeoserverModule extends ServletModule {
 	@Override
 	protected void configureServlets() {
 		bind(GeoServerIntegrationService.class).in(Singleton.class);
-		bind(LayerService.class).in(Singleton.class);
 	}
 }

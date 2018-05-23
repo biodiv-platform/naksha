@@ -8,9 +8,9 @@ import com.strandls.naksha.NakshaConfig;
 
 public abstract class DAOFactory {
 
-	private static final String PROPERTY_URL = "db.url";
-	private static final String PROPERTY_USERNAME = "db.username";
-	private static final String PROPERTY_PASSWORD = "db.password";
+	private static final String PROPERTY_URL = "geoserver.db.url";
+	private static final String PROPERTY_USER = "db.username";
+	private static final String PROPERTY_PASS = "db.password";
 
 	/**
 	 * Returns a new DAOFactory instance for the given database name.
@@ -20,8 +20,8 @@ public abstract class DAOFactory {
 	public static DAOFactory getInstance() {
 		
 		String url = NakshaConfig.getString(PROPERTY_URL);
-		String password = NakshaConfig.getString(PROPERTY_PASSWORD);
-		String username = NakshaConfig.getString(PROPERTY_USERNAME);
+		String password = NakshaConfig.getString(PROPERTY_PASS);
+		String username = NakshaConfig.getString(PROPERTY_USER);
 
 		return new DriverManagerDAOFactory(url, username, password);
 	}
