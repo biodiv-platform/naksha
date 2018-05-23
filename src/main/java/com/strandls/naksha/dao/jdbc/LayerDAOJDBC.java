@@ -31,7 +31,7 @@ public class LayerDAOJDBC implements LayerDAO {
 			+ "RIGHT OUTER JOIN information_schema.columns c on (pgd.objsubid=c.ordinal_position and  c.table_schema=st.schemaname and c.table_name=st.relname)\n"
 			+ "WHERE table_schema = 'public' and table_name = ?";
 
-	private static final String GET_LAYERNAME_WITH_TAG = "SELECT layer_name, tags FROM \"Meta_Layer\"";
+	private static final String GET_LAYERNAME_WITH_TAG = "SELECT layer_tablename, tags FROM \"Meta_Layer\"";
 
 	@Override
 	public List<LayerAttributes> getLayerAttributes(String layerName) {
@@ -62,7 +62,7 @@ public class LayerDAOJDBC implements LayerDAO {
 				if (tags != null)	
 					for (String t : tags.split(",")) {
 						if (t.trim().toLowerCase().contains(tag.toLowerCase()))
-							layerNames.add(resultSet.getString("layer_name"));
+							layerNames.add(resultSet.getString("layer_tablename"));
 					}
 			}
 		} catch (SQLException e) {
