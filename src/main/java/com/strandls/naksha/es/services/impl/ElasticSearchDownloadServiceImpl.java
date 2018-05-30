@@ -18,12 +18,16 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchScrollRequest;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.GeoBoundingBoxQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.strandls.naksha.es.ElasticSearchClient;
+import com.strandls.naksha.es.models.MapBounds;
+import com.strandls.naksha.es.models.MapSearchParams;
 import com.strandls.naksha.es.models.query.MapSearchQuery;
 import com.strandls.naksha.es.services.api.ElasticSearchDownloadService;
 import com.strandls.naksha.utils.Utils;
@@ -42,8 +46,7 @@ public class ElasticSearchDownloadServiceImpl extends ElasticSearchQueryUtil imp
 	private ElasticSearchClient client;
 
 	public enum DownloadFileType {
-		CSV,
-		JSON
+		CSV, JSON
 	}
 
 	/*
@@ -52,14 +55,14 @@ public class ElasticSearchDownloadServiceImpl extends ElasticSearchQueryUtil imp
 	 * @see com.strandls.naksha.es.services.api.ElasticSearchDownloadService#
 	 * downloadSearch(java.lang.String, java.lang.String,
 	 * com.strandls.naksha.es.models.query.MapSearchQuery, java.lang.String,
-	 * java.lang.String)
+	 * java.lang.String, java.lang.String)
 	 */
 	@Override
-	public String downloadSearch(String index, String type, MapSearchQuery query, String filePath, String fileType)
-			throws IOException {
+	public String downloadSearch(String index, String type, MapSearchQuery query, String geoField, String filePath,
+			String fileType) throws IOException {
 		logger.info("Download request received for index: {}, type: {}, fileType: {}", index, type, fileType);
 
-		SearchRequest searchRequest = getDownloadSearchRequest(query, index, type);
+		SearchRequest searchRequest = getDownloadSearchRequest(query, geoField, index, type);
 		DownloadFileType downloadFileType = fileType != null ? DownloadFileType.valueOf(fileType)
 				: DownloadFileType.JSON;
 
@@ -72,8 +75,7 @@ public class ElasticSearchDownloadServiceImpl extends ElasticSearchQueryUtil imp
 
 			if (DownloadFileType.CSV == downloadFileType) {
 				downloadCSV(searchRequest, zipOut);
-			}
-			else if (DownloadFileType.JSON == downloadFileType) {
+			} else if (DownloadFileType.JSON == downloadFileType) {
 				downloadJson(searchRequest, zipOut);
 			}
 		}
@@ -90,7 +92,7 @@ public class ElasticSearchDownloadServiceImpl extends ElasticSearchQueryUtil imp
 		do {
 
 			for (SearchHit hit : searchResponse.getHits().getHits())
-				out.write((hit.getSourceAsString()+"\n").getBytes());
+				out.write((hit.getSourceAsString() + "\n").getBytes());
 
 			SearchScrollRequest request = new SearchScrollRequest(searchResponse.getScrollId());
 			request.scroll(new TimeValue(60000));
@@ -135,13 +137,22 @@ public class ElasticSearchDownloadServiceImpl extends ElasticSearchQueryUtil imp
 
 	}
 
-	private SearchRequest getDownloadSearchRequest(MapSearchQuery query, String index, String type) {
+	private SearchRequest getDownloadSearchRequest(MapSearchQuery query, String geoField, String index, String type) {
 		BoolQueryBuilder boolQueryBuilder = getBoolQueryBuilder(query);
 		SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 		sourceBuilder.query(boolQueryBuilder);
 		sourceBuilder.size(5000);
 		SearchRequest searchRequest = new SearchRequest(index);
 		searchRequest.types(type);
+
+		MapSearchParams searchParams = query.getSearchParams();
+		if (searchParams != null && searchParams.getMapBounds() != null && geoField != null) {
+			MapBounds bounds = searchParams.getMapBounds();
+			GeoBoundingBoxQueryBuilder setCorners = QueryBuilders.geoBoundingBoxQuery(geoField)
+					.setCorners(bounds.getTop(), bounds.getLeft(), bounds.getBottom(), bounds.getRight());
+			sourceBuilder.postFilter(setCorners);
+		}
+
 		searchRequest.source(sourceBuilder);
 		searchRequest.scroll(new TimeValue(60000));
 

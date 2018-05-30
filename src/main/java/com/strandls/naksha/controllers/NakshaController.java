@@ -301,11 +301,12 @@ public class NakshaController {
 	@Produces(MediaType.APPLICATION_JSON)
 	public String download(@PathParam("index") String index,
 			@PathParam("type") String type,
+			@QueryParam("geoField") String geoField,
 			@QueryParam("filePath") String filePath,
 			@QueryParam("fileType") String fileType,
 			MapSearchQuery query) {
 		try {
-			return elasticSearchDownloadService.downloadSearch(index, type, query, filePath, fileType);
+			return elasticSearchDownloadService.downloadSearch(index, type, query, geoField, filePath, fileType);
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());

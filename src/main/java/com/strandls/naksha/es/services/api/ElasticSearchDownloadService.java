@@ -21,6 +21,8 @@ public interface ElasticSearchDownloadService {
 	 *            the type in which to search
 	 * @param query
 	 *            the query
+	 * @param geoField
+	 *            the field which stores location
 	 * @param filePath
 	 *            the filePath where the file needs to be downloaded
 	 * @param fileType
@@ -29,6 +31,6 @@ public interface ElasticSearchDownloadService {
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
-	String downloadSearch(String index, String type, MapSearchQuery query, String filePath, String fileType)
-			throws IOException;
+	String downloadSearch(String index, String type, MapSearchQuery query, String geoField, String filePath,
+			String fileType) throws IOException;
 }
