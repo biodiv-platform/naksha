@@ -22,10 +22,12 @@ import org.elasticsearch.action.support.replication.ReplicationResponse;
 import org.elasticsearch.action.support.replication.ReplicationResponse.ShardInfo;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
+import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.GeoBoundingBoxQueryBuilder;
+import org.elasticsearch.index.query.GeoPolygonQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -41,8 +43,10 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.strandls.naksha.es.ElasticSearchClient;
+import com.strandls.naksha.es.models.MapBoundParams;
 import com.strandls.naksha.es.models.MapBounds;
 import com.strandls.naksha.es.models.MapDocument;
+import com.strandls.naksha.es.models.MapGeoPoint;
 import com.strandls.naksha.es.models.MapQueryResponse;
 import com.strandls.naksha.es.models.MapQueryStatus;
 import com.strandls.naksha.es.models.MapResponse;
@@ -309,11 +313,31 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 			logger.info(" For index: {}, type: {}, bulk update id: {}, the status is {}", index, type,
 					bulkItemResponse.getId(), queryStatus);
 
-			responses .add(new MapQueryResponse(queryStatus, failureReason.toString()));
+			responses.add(new MapQueryResponse(queryStatus, failureReason.toString()));
 		}
 
 		return responses;
 
+	}
+
+	private void querySearchBoundsHelper(SearchSourceBuilder sourceBuilder, MapBoundParams params,
+			String geoAggregationField) {
+		// map bounding box bounds
+		MapBounds bounds = params.getBounds();
+		if (bounds != null) {
+			GeoBoundingBoxQueryBuilder setCorners = QueryBuilders.geoBoundingBoxQuery(geoAggregationField + "_bounds")
+					.setCorners(bounds.getTop(), bounds.getLeft(), bounds.getBottom(), bounds.getRight());
+			sourceBuilder.postFilter(setCorners);
+		}
+
+		// map polygon bounds
+		List<MapGeoPoint> polygon = params.getPolygon();
+		if(polygon != null) {
+			List<GeoPoint> geoPoints = new ArrayList<>();
+			for(MapGeoPoint point : polygon) geoPoints.add(new GeoPoint(point.getLat(), point.getLon()));
+			GeoPolygonQueryBuilder setPolygon = QueryBuilders.geoPolygonQuery(geoAggregationField + "_polygon", geoPoints);
+			sourceBuilder.postFilter(setPolygon);
+		}
 	}
 
 	private MapResponse querySearch(String index, String type, QueryBuilder query, MapSearchParams searchParams,
@@ -339,11 +363,8 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 			sourceBuilder.aggregation(getGeoGridAggregationBuilder(geoAggregationField, geoAggegationPrecision));
 		}
 
-		if (searchParams.getMapBounds() != null) {
-			MapBounds bounds = searchParams.getMapBounds();
-			GeoBoundingBoxQueryBuilder setCorners = QueryBuilders.geoBoundingBoxQuery(geoAggregationField)
-					.setCorners(bounds.getTop(), bounds.getLeft(), bounds.getBottom(), bounds.getRight());
-			sourceBuilder.postFilter(setCorners);
+		if (searchParams.getMapBoundParams() != null) {
+			querySearchBoundsHelper(sourceBuilder, searchParams.getMapBoundParams(), geoAggregationField);
 		}
 
 		SearchRequest searchRequest = new SearchRequest(index);
@@ -465,12 +486,8 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 			mapResponse = querySearch(index, type, masterBoolQuery, searchParams, geoAggregationField,
 					geoAggegationPrecision);
 
-		if (searchParams.getMapBounds() != null) {
-			MapBounds bounds = searchParams.getMapBounds();
-			GeoBoundingBoxQueryBuilder setCorners = QueryBuilders.geoBoundingBoxQuery(geoAggregationField)
-					.setCorners(bounds.getTop(), bounds.getLeft(), bounds.getBottom(), bounds.getRight());
+		if (searchParams.getMapBoundParams() != null) {
 
-			masterBoolQuery.must(setCorners);
 			MapResponse filteredMapResponse = querySearch(index, type, masterBoolQuery, searchParams,
 					geoAggregationField, geoAggegationPrecision);
 

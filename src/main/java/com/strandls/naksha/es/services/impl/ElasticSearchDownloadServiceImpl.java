@@ -146,8 +146,8 @@ public class ElasticSearchDownloadServiceImpl extends ElasticSearchQueryUtil imp
 		searchRequest.types(type);
 
 		MapSearchParams searchParams = query.getSearchParams();
-		if (searchParams != null && searchParams.getMapBounds() != null && geoField != null) {
-			MapBounds bounds = searchParams.getMapBounds();
+		if (searchParams != null && searchParams.getMapBoundParams() != null && geoField != null) {
+			MapBounds bounds = searchParams.getMapBoundParams().getBounds();
 			GeoBoundingBoxQueryBuilder setCorners = QueryBuilders.geoBoundingBoxQuery(geoField)
 					.setCorners(bounds.getTop(), bounds.getLeft(), bounds.getBottom(), bounds.getRight());
 			sourceBuilder.postFilter(setCorners);

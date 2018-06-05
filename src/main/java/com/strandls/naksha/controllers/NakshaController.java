@@ -1,5 +1,6 @@
 package com.strandls.naksha.controllers;
 
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.strandls.naksha.es.models.MapBoundParams;
 import com.strandls.naksha.es.models.MapBounds;
 import com.strandls.naksha.es.models.MapDocument;
 import com.strandls.naksha.es.models.MapQueryResponse;
@@ -275,7 +277,10 @@ public class NakshaController {
 			MapSearchQuery query) {
 		
 		MapSearchParams searchParams = query.getSearchParams();
-		MapBounds bounds = searchParams.getMapBounds();
+		MapBoundParams boundParams = searchParams.getMapBoundParams();
+		MapBounds bounds = null;
+		if(boundParams != null)
+			bounds = boundParams.getBounds();
 
 		if(onlyFilteredAggregation != null && onlyFilteredAggregation &&
 				bounds == null)

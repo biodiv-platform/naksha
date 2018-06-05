@@ -27,7 +27,7 @@ public class MapSearchParams {
 	/**
 	 * the bounds in which the search is required
 	 */
-	private MapBounds mapBounds;
+	private MapBoundParams mapBoundParams;
 
     public MapSearchParams() {}
 	public MapSearchParams(Integer from, Integer limit, String sortOn, MapSortType sortType) {
@@ -38,13 +38,13 @@ public class MapSearchParams {
 		this.sortType = sortType;
 	}
 
-	public MapSearchParams(Integer from, Integer limit, String sortOn, MapSortType sortType, MapBounds mapBounds) {
+	public MapSearchParams(Integer from, Integer limit, String sortOn, MapSortType sortType, MapBoundParams mapBoundParams) {
 		super();
 		this.from = from;
 		this.limit = limit;
 		this.sortOn = sortOn;
 		this.sortType = sortType;
-		this.mapBounds = mapBounds;
+		this.mapBoundParams = mapBoundParams;
 	}
 
 	public Integer getFrom() {
@@ -79,18 +79,18 @@ public class MapSearchParams {
 		this.sortType = sortType;
 	}
 
-	public MapBounds getMapBounds() {
-		return mapBounds;
+	public MapBoundParams getMapBoundParams() {
+		return mapBoundParams;
 	}
 
-	public void setMapBounds(MapBounds mapBounds) {
-		this.mapBounds = mapBounds;
+	public void setMapBoundParams(MapBoundParams mapBoundParams) {
+		this.mapBoundParams = mapBoundParams;
 	}
 
 	@Override
 	public String toString() {
 		return "MapSearchParams [from=" + from + ", limit=" + limit + ", sortOn=" + sortOn + ", sortType=" + sortType
-				+ ", mapBounds=" + mapBounds.toString() + "]";
+				+ ", mapBoundParams=" + mapBoundParams.toString() + "]";
 	}
 	
 }
