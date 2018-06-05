@@ -47,6 +47,19 @@ public class GeoserverController {
 	}
 
 	@GET
+	@Path("/layers/{workspace}/wms")
+	@Produces(MediaType.APPLICATION_XML)
+	public Document getCapabilities(@PathParam("workspace") String workspace) {
+
+		ArrayList<NameValuePair> params = new ArrayList<>();
+		params.add(new BasicNameValuePair("REQUEST", "GetCapabilities"));
+
+		String url = workspace + "/wms";
+		String layers = new String(service.getRequest(url, params));
+		return Utils.convertStringToDocument(layers);
+	}
+
+	@GET
 	@Path("/layers/{id}/styles")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<GeoserverLayerStyles> fetchAllStyles(@PathParam("id") String id) {
