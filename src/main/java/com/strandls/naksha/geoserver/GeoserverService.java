@@ -3,6 +3,8 @@ package com.strandls.naksha.geoserver;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONObject;
+import org.json.XML;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -38,5 +40,17 @@ public class GeoserverService {
 		}
 
 		return styles;
+	}
+
+	public static String jsonizeLayerString(String layerStr) {
+		JSONObject jsonObject = XML.toJSONObject(layerStr);
+		JSONObject wmsJson = jsonObject.getJSONObject("WMS_Capabilities");
+		wmsJson.remove("Service");
+		JSONObject capabilityJson = wmsJson.getJSONObject("Capability");
+		capabilityJson.remove("Request");
+		capabilityJson.remove("Exception");
+		capabilityJson.getJSONObject("Layer").remove("CRS");
+
+		return jsonObject.toString();
 	}
 }

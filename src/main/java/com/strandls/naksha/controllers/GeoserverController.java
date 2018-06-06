@@ -48,15 +48,15 @@ public class GeoserverController {
 
 	@GET
 	@Path("/layers/{workspace}/wms")
-	@Produces(MediaType.APPLICATION_XML)
-	public Document getCapabilities(@PathParam("workspace") String workspace) {
+	@Produces(MediaType.APPLICATION_JSON)
+	public String getCapabilities(@PathParam("workspace") String workspace) {
 
 		ArrayList<NameValuePair> params = new ArrayList<>();
 		params.add(new BasicNameValuePair("REQUEST", "GetCapabilities"));
 
 		String url = workspace + "/wms";
 		String layers = new String(service.getRequest(url, params));
-		return Utils.convertStringToDocument(layers);
+		return GeoserverService.jsonizeLayerString(layers);
 	}
 
 	@GET
