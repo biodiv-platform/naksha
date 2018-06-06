@@ -8,6 +8,8 @@ public class MapBoundParams {
 	
 	private List<MapGeoPoint> polygon;
 
+	public MapBoundParams() {}
+
 	public MapBoundParams(MapBounds bounds, List<MapGeoPoint> polygon) {
 		super();
 		this.bounds = bounds;
