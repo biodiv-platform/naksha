@@ -332,7 +332,7 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 
 		// map polygon bounds
 		List<MapGeoPoint> polygon = params.getPolygon();
-		if(polygon != null) {
+		if(polygon != null && !polygon.isEmpty()) {
 			List<GeoPoint> geoPoints = new ArrayList<>();
 			for(MapGeoPoint point : polygon) geoPoints.add(new GeoPoint(point.getLat(), point.getLon()));
 			GeoPolygonQueryBuilder setPolygon = QueryBuilders.geoPolygonQuery(geoAggregationField + "_polygon", geoPoints);
