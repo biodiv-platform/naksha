@@ -264,7 +264,23 @@ public class NakshaController {
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
 	}
-	
+
+	@GET
+	@Path("/terms-aggregation/{index}/{type}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public MapDocument termsAggregation(@PathParam("index") String index,
+			@PathParam("type") String type,
+			@QueryParam("field") String field,
+			@QueryParam("size") Integer precision) {
+
+		try {
+			return elasticSearchService.termsAggregation(index, type, field, precision);
+		} catch (IOException e) {
+			logger.error(e.getMessage());
+			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
+		}
+	}
+
 	@POST
 	@Path("/search/{index}/{type}")
 	@Consumes(MediaType.APPLICATION_JSON)

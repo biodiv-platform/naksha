@@ -12,6 +12,7 @@ import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.index.query.TermsQueryBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.geogrid.GeoGridAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 
 import com.strandls.naksha.es.models.query.MapAndBoolQuery;
 import com.strandls.naksha.es.models.query.MapAndMatchPhraseQuery;
@@ -27,6 +28,8 @@ import com.strandls.naksha.es.models.query.MapRangeQuery;
 import com.strandls.naksha.es.models.query.MapSearchQuery;
 
 public class ElasticSearchQueryUtil {
+
+	private static final int SHARD_SIZE = 100;
 
 	private QueryBuilder getNestedQueryBuilder(MapQuery query, QueryBuilder queryBuilder) {
 		if(query.getPath() == null)
@@ -164,4 +167,12 @@ public class ElasticSearchQueryUtil {
 		geohashGrid.precision(precision);
 		return geohashGrid;
 	}
+
+	protected TermsAggregationBuilder getTermsAggregationBuilder(String field, Integer size) {
+		TermsAggregationBuilder builder = AggregationBuilders.terms(field);
+		builder.size(size);
+		builder.shardSize(SHARD_SIZE);
+		return builder;
+	}
+
 }

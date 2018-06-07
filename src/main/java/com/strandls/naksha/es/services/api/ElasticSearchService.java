@@ -100,7 +100,8 @@ public interface ElasticSearchService {
 	List<MapQueryResponse> bulkUpload(String index, String type, String jsonArray) throws IOException;
 
 	/**
-	 * Bulk update the the documents that are provided as list of map of new values for fields
+	 * Bulk update the the documents that are provided as list of map of new values
+	 * for fields
 	 *
 	 * @param index
 	 *            the index of the documents
@@ -112,7 +113,8 @@ public interface ElasticSearchService {
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
-	List<MapQueryResponse> bulkUpdate(String index, String type, List<Map<String, Object> > updateDocs) throws IOException;
+	List<MapQueryResponse> bulkUpdate(String index, String type, List<Map<String, Object>> updateDocs)
+			throws IOException;
 
 	/**
 	 * Search for a particular key value pair
@@ -220,9 +222,26 @@ public interface ElasticSearchService {
 	 *            the field on which aggregation needs to be performed.
 	 * @param precision
 	 *            the precision raning between 1 to 12 for aggregation.
-	 * @return list of {@link MapDocument}
+	 * @return {@link MapDocument}
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
 	MapDocument geohashAggregation(String index, String type, String field, Integer precision) throws IOException;
+
+	/**
+	 * Terms aggregation
+	 * 
+	 * @param index
+	 *            the index in which to search
+	 * @param type
+	 *            the type in which to search
+	 * @param field
+	 *            the field on which aggregation needs to be performed.
+	 * @param size
+	 *            the limit on the number of output buckets
+	 * @return {@link MapDocument}
+	 * @throws IOException
+	 *             throws {@link IOException}
+	 */
+	MapDocument termsAggregation(String index, String type, String field, Integer size) throws IOException;
 }

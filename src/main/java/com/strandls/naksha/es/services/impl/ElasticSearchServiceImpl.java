@@ -332,10 +332,12 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 
 		// map polygon bounds
 		List<MapGeoPoint> polygon = params.getPolygon();
-		if(polygon != null && !polygon.isEmpty()) {
+		if (polygon != null && !polygon.isEmpty()) {
 			List<GeoPoint> geoPoints = new ArrayList<>();
-			for(MapGeoPoint point : polygon) geoPoints.add(new GeoPoint(point.getLat(), point.getLon()));
-			GeoPolygonQueryBuilder setPolygon = QueryBuilders.geoPolygonQuery(geoAggregationField + "_polygon", geoPoints);
+			for (MapGeoPoint point : polygon)
+				geoPoints.add(new GeoPoint(point.getLat(), point.getLon()));
+			GeoPolygonQueryBuilder setPolygon = QueryBuilders.geoPolygonQuery(geoAggregationField + "_polygon",
+					geoPoints);
 			sourceBuilder.postFilter(setPolygon);
 		}
 	}
@@ -516,6 +518,25 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 				precision);
 
 		return aggregateSearch(index, type, getGeoGridAggregationBuilder(field, precision));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.strandls.naksha.es.services.api.ElasticSearchService#termsAggregation(
+	 * java.lang.String, java.lang.String, java.lang.String, java.lang.Integer)
+	 */
+	@Override
+	public MapDocument termsAggregation(String index, String type, String field, Integer size) throws IOException {
+
+		if(size == null)
+			size = 10;
+
+		logger.info("Terms aggregation for index: {}, type: {} on field: {} with size: {}", index, type, field,
+				size);
+
+		return aggregateSearch(index, type, getTermsAggregationBuilder(field, size));
 	}
 
 	private MapDocument aggregateSearch(String index, String type, AggregationBuilder aggQuery) throws IOException {
