@@ -325,7 +325,7 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 		// map bounding box bounds
 		MapBounds bounds = params.getBounds();
 		if (bounds != null) {
-			GeoBoundingBoxQueryBuilder setCorners = QueryBuilders.geoBoundingBoxQuery(geoAggregationField + "_bounds")
+			GeoBoundingBoxQueryBuilder setCorners = QueryBuilders.geoBoundingBoxQuery(geoAggregationField)
 					.setCorners(bounds.getTop(), bounds.getLeft(), bounds.getBottom(), bounds.getRight());
 			sourceBuilder.postFilter(setCorners);
 		}
@@ -336,7 +336,7 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 			List<GeoPoint> geoPoints = new ArrayList<>();
 			for (MapGeoPoint point : polygon)
 				geoPoints.add(new GeoPoint(point.getLat(), point.getLon()));
-			GeoPolygonQueryBuilder setPolygon = QueryBuilders.geoPolygonQuery(geoAggregationField + "_polygon",
+			GeoPolygonQueryBuilder setPolygon = QueryBuilders.geoPolygonQuery(geoAggregationField,
 					geoPoints);
 			sourceBuilder.postFilter(setPolygon);
 		}
