@@ -1,10 +1,14 @@
 package com.strandls.naksha.es.services.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.lucene.search.join.ScoreMode;
+import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.ExistsQueryBuilder;
+import org.elasticsearch.index.query.GeoBoundingBoxQueryBuilder;
+import org.elasticsearch.index.query.GeoPolygonQueryBuilder;
 import org.elasticsearch.index.query.MatchPhraseQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -14,6 +18,10 @@ import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.geogrid.GeoGridAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 
+import com.strandls.naksha.es.models.MapBoundParams;
+import com.strandls.naksha.es.models.MapBounds;
+import com.strandls.naksha.es.models.MapGeoPoint;
+import com.strandls.naksha.es.models.MapSearchParams;
 import com.strandls.naksha.es.models.query.MapAndBoolQuery;
 import com.strandls.naksha.es.models.query.MapAndMatchPhraseQuery;
 import com.strandls.naksha.es.models.query.MapAndRangeQuery;
@@ -32,7 +40,7 @@ public class ElasticSearchQueryUtil {
 	private static final int SHARD_SIZE = 100;
 
 	private QueryBuilder getNestedQueryBuilder(MapQuery query, QueryBuilder queryBuilder) {
-		if(query.getPath() == null)
+		if (query.getPath() == null)
 			return queryBuilder;
 		return QueryBuilders.nestedQuery(query.getPath(), queryBuilder, ScoreMode.None);
 	}
@@ -46,9 +54,10 @@ public class ElasticSearchQueryUtil {
 		ExistsQueryBuilder queryBuilder = QueryBuilders.existsQuery(query.getKey());
 		return query.getPath() != null ? getNestedQueryBuilder(query, queryBuilder) : queryBuilder;
 	}
-	
+
 	private QueryBuilder getRangeQueryBuilder(MapRangeQuery query) {
-		RangeQueryBuilder queryBuilder = QueryBuilders.rangeQuery(query.getKey()).from(query.getStart()).to(query.getEnd());
+		RangeQueryBuilder queryBuilder = QueryBuilders.rangeQuery(query.getKey()).from(query.getStart())
+				.to(query.getEnd());
 		return query.getPath() != null ? getNestedQueryBuilder(query, queryBuilder) : queryBuilder;
 	}
 
@@ -57,10 +66,11 @@ public class ElasticSearchQueryUtil {
 		return query.getPath() != null ? getNestedQueryBuilder(query, queryBuilder) : queryBuilder;
 	}
 
-	private void buildBoolQueries(List<MapAndBoolQuery> andQueries, List<MapOrBoolQuery> orQueries, BoolQueryBuilder masterBoolQuery) {
-		
+	private void buildBoolQueries(List<MapAndBoolQuery> andQueries, List<MapOrBoolQuery> orQueries,
+			BoolQueryBuilder masterBoolQuery) {
+
 		BoolQueryBuilder boolQuery;
-		
+
 		if (andQueries != null) {
 			boolQuery = QueryBuilders.boolQuery();
 			for (MapBoolQuery query : andQueries) {
@@ -84,8 +94,9 @@ public class ElasticSearchQueryUtil {
 		}
 	}
 
-	private void buildRangeQueries(List<MapAndRangeQuery> andQueries, List<MapOrRangeQuery> orQueries, BoolQueryBuilder masterBoolQuery) {
-		
+	private void buildRangeQueries(List<MapAndRangeQuery> andQueries, List<MapOrRangeQuery> orQueries,
+			BoolQueryBuilder masterBoolQuery) {
+
 		BoolQueryBuilder boolQuery;
 
 		if (andQueries != null) {
@@ -119,8 +130,8 @@ public class ElasticSearchQueryUtil {
 		}
 	}
 
-	private void buildMatchPhraseQueries(List<MapAndMatchPhraseQuery> andQueries,
-			List<MapOrMatchPhraseQuery> orQueries, BoolQueryBuilder masterBoolQuery) {
+	private void buildMatchPhraseQueries(List<MapAndMatchPhraseQuery> andQueries, List<MapOrMatchPhraseQuery> orQueries,
+			BoolQueryBuilder masterBoolQuery) {
 		BoolQueryBuilder boolQuery;
 
 		if (andQueries != null) {
@@ -150,19 +161,19 @@ public class ElasticSearchQueryUtil {
 	protected BoolQueryBuilder getBoolQueryBuilder(MapSearchQuery searchQuery) {
 
 		BoolQueryBuilder masterBoolQuery = QueryBuilders.boolQuery();
-		if(searchQuery == null)
+		if (searchQuery == null)
 			return masterBoolQuery;
 
 		buildBoolQueries(searchQuery.getAndBoolQueries(), searchQuery.getOrBoolQueries(), masterBoolQuery);
 		buildRangeQueries(searchQuery.getAndRangeQueries(), searchQuery.getOrRangeQueries(), masterBoolQuery);
 		buildExistsQueries(searchQuery.getAndExistQueries(), masterBoolQuery);
-		buildMatchPhraseQueries(searchQuery.getAndMatchPhraseQueries(), searchQuery.getOrMatchPhraseQueries(), masterBoolQuery);
+		buildMatchPhraseQueries(searchQuery.getAndMatchPhraseQueries(), searchQuery.getOrMatchPhraseQueries(),
+				masterBoolQuery);
 		return masterBoolQuery;
 	}
 
 	protected GeoGridAggregationBuilder getGeoGridAggregationBuilder(String field, Integer precision) {
-		GeoGridAggregationBuilder geohashGrid = AggregationBuilders
-				.geohashGrid(field + "-" + precision);
+		GeoGridAggregationBuilder geohashGrid = AggregationBuilders.geohashGrid(field + "-" + precision);
 		geohashGrid.field(field);
 		geohashGrid.precision(precision);
 		return geohashGrid;
@@ -175,4 +186,26 @@ public class ElasticSearchQueryUtil {
 		return builder;
 	}
 
+	protected void applyMapBoundParams(MapSearchParams searchParams, BoolQueryBuilder masterBoolQuery,
+			String geoAggregationField) {
+
+		MapBoundParams mapBoundParams = searchParams.getMapBoundParams();
+
+		MapBounds bounds = mapBoundParams.getBounds();
+		if (bounds != null) {
+			GeoBoundingBoxQueryBuilder setCorners = QueryBuilders.geoBoundingBoxQuery(geoAggregationField)
+					.setCorners(bounds.getTop(), bounds.getLeft(), bounds.getBottom(), bounds.getRight());
+			masterBoolQuery.must(setCorners);
+		}
+
+		List<MapGeoPoint> polygon = mapBoundParams.getPolygon();
+		if (polygon != null && !polygon.isEmpty()) {
+			List<GeoPoint> geoPoints = new ArrayList<>();
+			for (MapGeoPoint point : polygon)
+				geoPoints.add(new GeoPoint(point.getLat(), point.getLon()));
+
+			GeoPolygonQueryBuilder setPolygon = QueryBuilders.geoPolygonQuery(geoAggregationField, geoPoints);
+			masterBoolQuery.filter(setPolygon);
+		}
+	}
 }

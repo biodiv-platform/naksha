@@ -30,6 +30,7 @@ public class MapSearchParams {
 	private MapBoundParams mapBoundParams;
 
     public MapSearchParams() {}
+
 	public MapSearchParams(Integer from, Integer limit, String sortOn, MapSortType sortType) {
 		super();
 		this.from = from;

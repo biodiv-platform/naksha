@@ -22,12 +22,9 @@ import org.elasticsearch.action.support.replication.ReplicationResponse;
 import org.elasticsearch.action.support.replication.ReplicationResponse.ShardInfo;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
-import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.GeoBoundingBoxQueryBuilder;
-import org.elasticsearch.index.query.GeoPolygonQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -43,10 +40,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.strandls.naksha.es.ElasticSearchClient;
-import com.strandls.naksha.es.models.MapBoundParams;
-import com.strandls.naksha.es.models.MapBounds;
 import com.strandls.naksha.es.models.MapDocument;
-import com.strandls.naksha.es.models.MapGeoPoint;
 import com.strandls.naksha.es.models.MapQueryResponse;
 import com.strandls.naksha.es.models.MapQueryStatus;
 import com.strandls.naksha.es.models.MapResponse;
@@ -320,27 +314,6 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 
 	}
 
-	private void querySearchBoundsHelper(SearchSourceBuilder sourceBuilder, MapBoundParams params,
-			String geoAggregationField) {
-		// map bounding box bounds
-		MapBounds bounds = params.getBounds();
-		if (bounds != null) {
-			GeoBoundingBoxQueryBuilder setCorners = QueryBuilders.geoBoundingBoxQuery(geoAggregationField)
-					.setCorners(bounds.getTop(), bounds.getLeft(), bounds.getBottom(), bounds.getRight());
-			sourceBuilder.postFilter(setCorners);
-		}
-
-		// map polygon bounds
-		List<MapGeoPoint> polygon = params.getPolygon();
-		if (polygon != null && !polygon.isEmpty()) {
-			List<GeoPoint> geoPoints = new ArrayList<>();
-			for (MapGeoPoint point : polygon)
-				geoPoints.add(new GeoPoint(point.getLat(), point.getLon()));
-			GeoPolygonQueryBuilder setPolygon = QueryBuilders.geoPolygonQuery(geoAggregationField,
-					geoPoints);
-			sourceBuilder.postFilter(setPolygon);
-		}
-	}
 
 	private MapResponse querySearch(String index, String type, QueryBuilder query, MapSearchParams searchParams,
 			String geoAggregationField, Integer geoAggegationPrecision) throws IOException {
@@ -363,10 +336,6 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 		if (geoAggregationField != null) {
 			geoAggegationPrecision = geoAggegationPrecision != null ? geoAggegationPrecision : 1;
 			sourceBuilder.aggregation(getGeoGridAggregationBuilder(geoAggregationField, geoAggegationPrecision));
-		}
-
-		if (searchParams.getMapBoundParams() != null) {
-			querySearchBoundsHelper(sourceBuilder, searchParams.getMapBoundParams(), geoAggregationField);
 		}
 
 		SearchRequest searchRequest = new SearchRequest(index);
@@ -490,6 +459,7 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 
 		if (searchParams.getMapBoundParams() != null) {
 
+			applyMapBoundParams(searchParams, masterBoolQuery, geoAggregationField);
 			MapResponse filteredMapResponse = querySearch(index, type, masterBoolQuery, searchParams,
 					geoAggregationField, geoAggegationPrecision);
 
