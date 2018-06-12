@@ -271,10 +271,15 @@ public class NakshaController {
 	public MapDocument termsAggregation(@PathParam("index") String index,
 			@PathParam("type") String type,
 			@QueryParam("field") String field,
-			@QueryParam("size") Integer precision) {
+			@QueryParam("subField") String subField,
+			@QueryParam("size") Integer size) {
+
+		if(field == null)
+			throw new WebApplicationException(Response.status(Status.BAD_REQUEST)
+					.entity("Aggregation field cannot be empty").build());
 
 		try {
-			return elasticSearchService.termsAggregation(index, type, field, precision);
+			return elasticSearchService.termsAggregation(index, type, field, subField, size);
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 			throw new WebApplicationException(Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
@@ -308,7 +313,7 @@ public class NakshaController {
 					.entity("Location field not specified for bounds").build());
 
 		try {
-			return elasticSearchService.search(index, type, query, searchParams,
+			return elasticSearchService.search(index, type, query,
 					geoAggregationField, geoAggegationPrecision, onlyFilteredAggregation);
 		} catch (IOException e) {
 			logger.error(e.getMessage());

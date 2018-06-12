@@ -173,29 +173,40 @@ public class ElasticSearchQueryUtil {
 	}
 
 	protected GeoGridAggregationBuilder getGeoGridAggregationBuilder(String field, Integer precision) {
+		if (field == null)
+			return null;
+
+		precision = precision != null ? precision : 1;
 		GeoGridAggregationBuilder geohashGrid = AggregationBuilders.geohashGrid(field + "-" + precision);
 		geohashGrid.field(field);
 		geohashGrid.precision(precision);
 		return geohashGrid;
 	}
 
-	protected TermsAggregationBuilder getTermsAggregationBuilder(String field, Integer size) {
+	protected TermsAggregationBuilder getTermsAggregationBuilder(String field, String subField, Integer size) {
 		TermsAggregationBuilder builder = AggregationBuilders.terms(field);
+		builder.field(field);
+
+		if (subField != null)
+			builder.subAggregation(AggregationBuilders.terms(subField).field(subField));
+
 		builder.size(size);
 		builder.shardSize(SHARD_SIZE);
 		return builder;
 	}
 
-	protected void applyMapBoundParams(MapSearchParams searchParams, BoolQueryBuilder masterBoolQuery,
+	protected void applyMapBounds(MapSearchParams searchParams, BoolQueryBuilder masterBoolQuery,
 			String geoAggregationField) {
 
 		MapBoundParams mapBoundParams = searchParams.getMapBoundParams();
+		if (mapBoundParams == null)
+			return;
 
 		MapBounds bounds = mapBoundParams.getBounds();
 		if (bounds != null) {
 			GeoBoundingBoxQueryBuilder setCorners = QueryBuilders.geoBoundingBoxQuery(geoAggregationField)
 					.setCorners(bounds.getTop(), bounds.getLeft(), bounds.getBottom(), bounds.getRight());
-			masterBoolQuery.must(setCorners);
+			masterBoolQuery.filter(setCorners);
 		}
 
 		List<MapGeoPoint> polygon = mapBoundParams.getPolygon();

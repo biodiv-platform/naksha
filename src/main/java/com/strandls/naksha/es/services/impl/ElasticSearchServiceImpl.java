@@ -30,6 +30,7 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.geogrid.GeoGridAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
@@ -314,7 +315,6 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 
 	}
 
-
 	private MapResponse querySearch(String index, String type, QueryBuilder query, MapSearchParams searchParams,
 			String geoAggregationField, Integer geoAggegationPrecision) throws IOException {
 
@@ -440,36 +440,37 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 	 * @see
 	 * com.strandls.naksha.es.services.api.ElasticSearchService#search(java.lang.
 	 * String, java.lang.String, com.strandls.naksha.es.models.query.MapSearchQuery,
-	 * com.strandls.naksha.es.models.MapSearchParams, java.lang.String,
-	 * java.lang.Integer, java.lang.Boolean)
+	 * java.lang.String, java.lang.Integer, java.lang.Boolean)
 	 */
 	@Override
-	public MapResponse search(String index, String type, MapSearchQuery searchQuery, MapSearchParams searchParams,
-			String geoAggregationField, Integer geoAggegationPrecision, Boolean onlyFilteredAggregation)
-			throws IOException {
+	public MapResponse search(String index, String type, MapSearchQuery searchQuery, String geoAggregationField,
+			Integer geoAggegationPrecision, Boolean onlyFilteredAggregation) throws IOException {
 
 		logger.info("SEARCH for index: {}, type: {}", index, type);
 
+		MapSearchParams searchParams = searchQuery.getSearchParams();
 		BoolQueryBuilder masterBoolQuery = getBoolQueryBuilder(searchQuery);
 
-		MapResponse mapResponse = null;
-		if (onlyFilteredAggregation == null || !onlyFilteredAggregation)
-			mapResponse = querySearch(index, type, masterBoolQuery, searchParams, geoAggregationField,
-					geoAggegationPrecision);
+		GeoGridAggregationBuilder geoGridAggregationBuilder = getGeoGridAggregationBuilder(geoAggregationField,
+				geoAggegationPrecision);
+		MapDocument aggregateSearch = aggregateSearch(index, type, geoGridAggregationBuilder, masterBoolQuery);
+		String geohashAggregation = null;
+		if (aggregateSearch != null)
+			geohashAggregation = aggregateSearch.getDocument().toString();
 
-		if (searchParams.getMapBoundParams() != null) {
-
-			applyMapBoundParams(searchParams, masterBoolQuery, geoAggregationField);
-			MapResponse filteredMapResponse = querySearch(index, type, masterBoolQuery, searchParams,
-					geoAggregationField, geoAggegationPrecision);
-
-			mapResponse = onlyFilteredAggregation != null && onlyFilteredAggregation ? filteredMapResponse
-					: mapResponse;
-			mapResponse.setViewFilteredGeohashAggregation(filteredMapResponse.getGeohashAggregation());
-			mapResponse.setDocuments(filteredMapResponse.getDocuments());
-			mapResponse.setTotalDocuments(filteredMapResponse.getTotalDocuments());
+		if (onlyFilteredAggregation != null && onlyFilteredAggregation) {
+			applyMapBounds(searchParams, masterBoolQuery, geoAggregationField);
+			aggregateSearch = aggregateSearch(index, type, geoGridAggregationBuilder, masterBoolQuery);
+			if (aggregateSearch != null)
+				geohashAggregation = aggregateSearch.getDocument().toString();
+			return new MapResponse(new ArrayList<>(), 0, geohashAggregation, geohashAggregation);
 		}
 
+		applyMapBounds(searchParams, masterBoolQuery, geoAggregationField);
+		MapResponse mapResponse = querySearch(index, type, masterBoolQuery, searchParams, geoAggregationField,
+				geoAggegationPrecision);
+		mapResponse.setViewFilteredGeohashAggregation(mapResponse.getGeohashAggregation());
+		mapResponse.setGeohashAggregation(geohashAggregation);
 		return mapResponse;
 	}
 
@@ -487,7 +488,7 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 		logger.info("GeoHash aggregation for index: {}, type: {} on field: {} with precision: {}", index, type, field,
 				precision);
 
-		return aggregateSearch(index, type, getGeoGridAggregationBuilder(field, precision));
+		return aggregateSearch(index, type, getGeoGridAggregationBuilder(field, precision), null);
 	}
 
 	/*
@@ -495,24 +496,32 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 	 * 
 	 * @see
 	 * com.strandls.naksha.es.services.api.ElasticSearchService#termsAggregation(
-	 * java.lang.String, java.lang.String, java.lang.String, java.lang.Integer)
+	 * java.lang.String, java.lang.String, java.lang.String, java.lang.String,
+	 * java.lang.Integer)
 	 */
 	@Override
-	public MapDocument termsAggregation(String index, String type, String field, Integer size) throws IOException {
+	public MapDocument termsAggregation(String index, String type, String field, String subField, Integer size)
+			throws IOException {
 
-		if(size == null)
+		if (size == null)
 			size = 10;
 
-		logger.info("Terms aggregation for index: {}, type: {} on field: {} with size: {}", index, type, field,
-				size);
+		logger.info("Terms aggregation for index: {}, type: {} on field: {} and sub field: {} with size: {}", index,
+				type, field, subField, size);
 
-		return aggregateSearch(index, type, getTermsAggregationBuilder(field, size));
+		return aggregateSearch(index, type, getTermsAggregationBuilder(field, subField, size), null);
 	}
 
-	private MapDocument aggregateSearch(String index, String type, AggregationBuilder aggQuery) throws IOException {
+	private MapDocument aggregateSearch(String index, String type, AggregationBuilder aggQuery, QueryBuilder query)
+			throws IOException {
+
+		if (aggQuery == null)
+			return null;
 
 		SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
+		if (query != null)
+			sourceBuilder.query(query);
 		sourceBuilder.aggregation(aggQuery);
 
 		SearchRequest searchRequest = new SearchRequest(index);

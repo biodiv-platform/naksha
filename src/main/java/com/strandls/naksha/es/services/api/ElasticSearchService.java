@@ -195,8 +195,6 @@ public interface ElasticSearchService {
 	 *            the type in which to search
 	 * @param query
 	 *            the query
-	 * @param searchParams
-	 *            {@link MapSearchParams} search parameters
 	 * @param geoAggregationField
 	 *            the geo_point field on which geohash aggregation is required
 	 * @param geoAggegationPrecision
@@ -207,8 +205,7 @@ public interface ElasticSearchService {
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
-	MapResponse search(String index, String type, MapSearchQuery query, MapSearchParams searchParams,
-			String geoAggregationField, Integer geoAggegationPrecision, Boolean onlyFilteredAggregation)
+	MapResponse search(String index, String type, MapSearchQuery query, String geoAggregationField, Integer geoAggegationPrecision, Boolean onlyFilteredAggregation)
 			throws IOException;
 
 	/**
@@ -237,11 +234,14 @@ public interface ElasticSearchService {
 	 *            the type in which to search
 	 * @param field
 	 *            the field on which aggregation needs to be performed.
+	 * @param subField
+	 *            the field on which sub-aggregation needs to be performed.
 	 * @param size
 	 *            the limit on the number of output buckets
 	 * @return {@link MapDocument}
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
-	MapDocument termsAggregation(String index, String type, String field, Integer size) throws IOException;
+	MapDocument termsAggregation(String index, String type, String field, String subField, Integer size)
+			throws IOException;
 }
