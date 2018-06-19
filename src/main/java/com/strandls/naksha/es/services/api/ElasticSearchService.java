@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import com.strandls.naksha.es.models.MapBounds;
 import com.strandls.naksha.es.models.MapDocument;
 import com.strandls.naksha.es.models.MapQueryResponse;
 import com.strandls.naksha.es.models.MapResponse;
@@ -205,8 +206,8 @@ public interface ElasticSearchService {
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
-	MapResponse search(String index, String type, MapSearchQuery query, String geoAggregationField, Integer geoAggegationPrecision, Boolean onlyFilteredAggregation)
-			throws IOException;
+	MapResponse search(String index, String type, MapSearchQuery query, String geoAggregationField,
+			Integer geoAggegationPrecision, Boolean onlyFilteredAggregation) throws IOException;
 
 	/**
 	 * Geohash aggregation search on a geo_point field.
@@ -238,10 +239,14 @@ public interface ElasticSearchService {
 	 *            the field on which sub-aggregation needs to be performed.
 	 * @param size
 	 *            the limit on the number of output buckets
+	 * @param locationField
+	 *            the field representing map point
+	 * @param mapBounds
+	 *            the map boundaries of interest
 	 * @return {@link MapDocument}
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
-	MapDocument termsAggregation(String index, String type, String field, String subField, Integer size)
-			throws IOException;
+	MapDocument termsAggregation(String index, String type, String field, String subField, Integer size,
+			String locationField, MapBounds mapBounds) throws IOException;
 }

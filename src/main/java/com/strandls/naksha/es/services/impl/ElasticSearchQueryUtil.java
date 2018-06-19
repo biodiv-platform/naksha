@@ -204,9 +204,7 @@ public class ElasticSearchQueryUtil {
 
 		MapBounds bounds = mapBoundParams.getBounds();
 		if (bounds != null) {
-			GeoBoundingBoxQueryBuilder setCorners = QueryBuilders.geoBoundingBoxQuery(geoAggregationField)
-					.setCorners(bounds.getTop(), bounds.getLeft(), bounds.getBottom(), bounds.getRight());
-			masterBoolQuery.filter(setCorners);
+			applyMapBounds(bounds, masterBoolQuery, geoAggregationField);
 		}
 
 		List<MapGeoPoint> polygon = mapBoundParams.getPolygon();
@@ -217,6 +215,16 @@ public class ElasticSearchQueryUtil {
 
 			GeoPolygonQueryBuilder setPolygon = QueryBuilders.geoPolygonQuery(geoAggregationField, geoPoints);
 			masterBoolQuery.filter(setPolygon);
+		}
+	}
+
+	protected void applyMapBounds(MapBounds bounds, BoolQueryBuilder masterBoolQuery,
+			String geoAggregationField) {
+
+		if (bounds != null) {
+			GeoBoundingBoxQueryBuilder setCorners = QueryBuilders.geoBoundingBoxQuery(geoAggregationField)
+					.setCorners(bounds.getTop(), bounds.getLeft(), bounds.getBottom(), bounds.getRight());
+			masterBoolQuery.filter(setCorners);
 		}
 	}
 }
