@@ -41,7 +41,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.strandls.naksha.es.ElasticSearchClient;
-import com.strandls.naksha.es.models.MapBounds;
 import com.strandls.naksha.es.models.MapDocument;
 import com.strandls.naksha.es.models.MapQueryResponse;
 import com.strandls.naksha.es.models.MapQueryStatus;
@@ -498,11 +497,12 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 	 * @see
 	 * com.strandls.naksha.es.services.api.ElasticSearchService#termsAggregation(
 	 * java.lang.String, java.lang.String, java.lang.String, java.lang.String,
-	 * java.lang.Integer, java.lang.String, com.strandls.naksha.es.models.MapBounds)
+	 * java.lang.Integer, java.lang.String,
+	 * com.strandls.naksha.es.models.query.MapSearchQuery)
 	 */
 	@Override
 	public MapDocument termsAggregation(String index, String type, String field, String subField, Integer size,
-			String locationField, MapBounds mapBounds) throws IOException {
+			String locationField, MapSearchQuery query) throws IOException {
 
 		if (size == null)
 			size = 10;
@@ -510,9 +510,9 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 		logger.info("Terms aggregation for index: {}, type: {} on field: {} and sub field: {} with size: {}", index,
 				type, field, subField, size);
 
-		BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
-		if (mapBounds != null) {
-			applyMapBounds(mapBounds, boolQuery, locationField);
+		BoolQueryBuilder boolQuery = getBoolQueryBuilder(query);
+		if (query.getSearchParams() != null) {
+			applyMapBounds(query.getSearchParams(), boolQuery, locationField);
 		}
 
 		return aggregateSearch(index, type, getTermsAggregationBuilder(field, subField, size), boolQuery);

@@ -4,12 +4,12 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import com.strandls.naksha.es.models.MapBounds;
 import com.strandls.naksha.es.models.MapDocument;
 import com.strandls.naksha.es.models.MapQueryResponse;
 import com.strandls.naksha.es.models.MapResponse;
 import com.strandls.naksha.es.models.MapSearchParams;
 import com.strandls.naksha.es.models.query.MapBoolQuery;
+import com.strandls.naksha.es.models.query.MapQuery;
 import com.strandls.naksha.es.models.query.MapRangeQuery;
 import com.strandls.naksha.es.models.query.MapSearchQuery;
 
@@ -241,12 +241,12 @@ public interface ElasticSearchService {
 	 *            the limit on the number of output buckets
 	 * @param locationField
 	 *            the field representing map point
-	 * @param mapBounds
-	 *            the map boundaries of interest
+	 * @param query
+	 *            optional {@link MapQuery}
 	 * @return {@link MapDocument}
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
 	MapDocument termsAggregation(String index, String type, String field, String subField, Integer size,
-			String locationField, MapBounds mapBounds) throws IOException;
+			String locationField, MapSearchQuery query) throws IOException;
 }

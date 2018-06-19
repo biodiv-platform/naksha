@@ -258,18 +258,24 @@ public class NakshaController {
 	@Produces(MediaType.APPLICATION_JSON)
 	public MapDocument termsAggregation(@PathParam("index") String index, @PathParam("type") String type,
 			@QueryParam("field") String field, @QueryParam("subField") String subField,
-			@QueryParam("size") Integer size, @QueryParam("locationField") String locationField, MapBounds mapBounds) {
+			@QueryParam("size") Integer size, @QueryParam("locationField") String locationField, MapSearchQuery query) {
 
 		if (field == null)
 			throw new WebApplicationException(
 					Response.status(Status.BAD_REQUEST).entity("Aggregation field cannot be empty").build());
+
+		MapSearchParams searchParams = query.getSearchParams();
+		MapBoundParams boundParams = searchParams.getMapBoundParams();
+		MapBounds mapBounds = null;
+		if (boundParams != null)
+			mapBounds = boundParams.getBounds();
 
 		if ((locationField != null && mapBounds == null) || (locationField == null && mapBounds != null))
 			throw new WebApplicationException(
 					Response.status(Status.BAD_REQUEST).entity("Incomplete map bounds request").build());
 
 		try {
-			return elasticSearchService.termsAggregation(index, type, field, subField, size, locationField, mapBounds);
+			return elasticSearchService.termsAggregation(index, type, field, subField, size, locationField, query);
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 			throw new WebApplicationException(
