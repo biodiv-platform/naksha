@@ -290,7 +290,8 @@ public class NakshaController {
 	public MapResponse search(@PathParam("index") String index, @PathParam("type") String type,
 			@QueryParam("geoAggregationField") String geoAggregationField,
 			@QueryParam("geoAggegationPrecision") Integer geoAggegationPrecision,
-			@QueryParam("onlyFilteredAggregation") Boolean onlyFilteredAggregation, MapSearchQuery query) {
+			@QueryParam("onlyFilteredAggregation") Boolean onlyFilteredAggregation,
+			@QueryParam("termsAggregationField") String termsAggregationField, MapSearchQuery query) {
 
 		MapSearchParams searchParams = query.getSearchParams();
 		MapBoundParams boundParams = searchParams.getMapBoundParams();
@@ -308,7 +309,7 @@ public class NakshaController {
 
 		try {
 			return elasticSearchService.search(index, type, query, geoAggregationField, geoAggegationPrecision,
-					onlyFilteredAggregation);
+					onlyFilteredAggregation, termsAggregationField);
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 			throw new WebApplicationException(

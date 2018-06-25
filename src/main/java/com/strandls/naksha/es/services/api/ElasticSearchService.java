@@ -202,12 +202,15 @@ public interface ElasticSearchService {
 	 *            the precision for geohash aggregation, default is 1
 	 * @param onlyFilteredAggregation
 	 *            if true give aggregation result only for the bounds specified
+	 * @param termsAggregationField
+	 *            if present find terms aggregation based on this field
 	 * @return {@link MapResponse}
 	 * @throws IOException
 	 *             throws {@link IOException}
 	 */
 	MapResponse search(String index, String type, MapSearchQuery query, String geoAggregationField,
-			Integer geoAggegationPrecision, Boolean onlyFilteredAggregation) throws IOException;
+			Integer geoAggegationPrecision, Boolean onlyFilteredAggregation, String termsAggregationField)
+			throws IOException;
 
 	/**
 	 * Geohash aggregation search on a geo_point field.

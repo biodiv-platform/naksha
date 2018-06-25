@@ -440,11 +440,12 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 	 * @see
 	 * com.strandls.naksha.es.services.api.ElasticSearchService#search(java.lang.
 	 * String, java.lang.String, com.strandls.naksha.es.models.query.MapSearchQuery,
-	 * java.lang.String, java.lang.Integer, java.lang.Boolean)
+	 * java.lang.String, java.lang.Integer, java.lang.Boolean, java.lang.String)
 	 */
 	@Override
 	public MapResponse search(String index, String type, MapSearchQuery searchQuery, String geoAggregationField,
-			Integer geoAggegationPrecision, Boolean onlyFilteredAggregation) throws IOException {
+			Integer geoAggegationPrecision, Boolean onlyFilteredAggregation, String termsAggregationField)
+			throws IOException {
 
 		logger.info("SEARCH for index: {}, type: {}", index, type);
 
@@ -458,12 +459,17 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 		if (aggregateSearch != null)
 			geohashAggregation = aggregateSearch.getDocument().toString();
 
+		String termsAggregation = null;
+		if(termsAggregationField != null) {
+			termsAggregation = termsAggregation(index, type, termsAggregationField, null, null, geoAggregationField, searchQuery).getDocument().toString();
+		}
+
 		if (onlyFilteredAggregation != null && onlyFilteredAggregation) {
 			applyMapBounds(searchParams, masterBoolQuery, geoAggregationField);
 			aggregateSearch = aggregateSearch(index, type, geoGridAggregationBuilder, masterBoolQuery);
 			if (aggregateSearch != null)
 				geohashAggregation = aggregateSearch.getDocument().toString();
-			return new MapResponse(new ArrayList<>(), 0, geohashAggregation, geohashAggregation);
+			return new MapResponse(new ArrayList<>(), 0, geohashAggregation, geohashAggregation, termsAggregation);
 		}
 
 		applyMapBounds(searchParams, masterBoolQuery, geoAggregationField);
@@ -471,6 +477,8 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 				geoAggegationPrecision);
 		mapResponse.setViewFilteredGeohashAggregation(mapResponse.getGeohashAggregation());
 		mapResponse.setGeohashAggregation(geohashAggregation);
+		mapResponse.setTermsAggregation(termsAggregation);
+
 		return mapResponse;
 	}
 
@@ -505,7 +513,7 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 			String locationField, MapSearchQuery query) throws IOException {
 
 		if (size == null)
-			size = 10;
+			size = 500;
 
 		logger.info("Terms aggregation for index: {}, type: {} on field: {} and sub field: {} with size: {}", index,
 				type, field, subField, size);
