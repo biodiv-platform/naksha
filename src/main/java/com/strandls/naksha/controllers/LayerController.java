@@ -1,7 +1,9 @@
 package com.strandls.naksha.controllers;
 
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -74,6 +76,47 @@ public class LayerController {
 
 			return layerService.uploadShpLayer(shpInputStream, dbfInputStream, metadataInputStream, shxInputStream,
 					layerName);
+		} catch (Exception e) {
+			throw new WebApplicationException(
+					Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
+		}
+	}
+
+	@Path("/uploadraster")
+	@POST
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	public int uploadRaster(FormDataMultiPart multiPart) {
+
+		try {
+			FormDataBodyPart formdata = null;
+
+			Map<String, InputStream> rasterFileData = new HashMap<>();
+			int i = 1;
+			while(true) {
+				formdata = multiPart.getField("raster" + i);
+
+				if(formdata == null) break;
+
+				String rasterFileName = formdata.getContentDisposition().getFileName();
+				InputStream rasterInputStream = formdata.getValueAs(InputStream.class);
+				rasterFileData.put(rasterFileName, rasterInputStream);
+
+				i++;
+			}
+
+			if(i == 0) {
+				throw new WebApplicationException(
+						Response.status(Response.Status.BAD_REQUEST).entity("Raster file not present").build());
+			}
+
+			formdata = multiPart.getField("metadata");
+			if (formdata == null) {
+				throw new WebApplicationException(
+						Response.status(Response.Status.BAD_REQUEST).entity("Metadata file not present").build());
+			}
+			InputStream metadataInputStream = formdata.getValueAs(InputStream.class);
+
+			return layerService.uploadRasterLayer(rasterFileData, metadataInputStream);
 		} catch (Exception e) {
 			throw new WebApplicationException(
 					Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());

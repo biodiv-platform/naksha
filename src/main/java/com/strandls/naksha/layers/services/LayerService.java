@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.inject.Inject;
 import javax.script.ScriptEngine;
@@ -111,9 +113,34 @@ public class LayerService {
 	}
 
 	public List<String> getLayerNamesWithTag(String tag) {
-		if(tag == null || tag.isEmpty())
+		if (tag == null || tag.isEmpty())
 			return new ArrayList<>();
 
 		return layerDAO.getLayerNamesWithTag(tag);
+	}
+
+	public int uploadRasterLayer(Map<String, InputStream> rasterFileData, InputStream metadataInputStream)
+			throws IOException {
+
+		String dataPath = NakshaConfig.getString(TEMP_DIR_PATH) + File.separator + System.currentTimeMillis();
+		String metadataFilePath = dataPath + File.separator + "metadata.txt";
+		File metadataFile = new File(metadataFilePath);
+
+		logger.info("Trying to upload raster at {}", dataPath);
+		try {
+
+			for (Entry<String, InputStream> entry : rasterFileData.entrySet()) {
+				File rasterFile = new File(dataPath + File.separator + entry.getKey());
+				FileUtils.copyInputStreamToFile(entry.getValue(), rasterFile);
+			}
+
+			FileUtils.copyInputStreamToFile(metadataInputStream, metadataFile);
+
+		} catch (IOException e) {
+			logger.error("Error while creating raster data files.", e);
+			throw e;
+		}
+
+		return 0;
 	}
 }
