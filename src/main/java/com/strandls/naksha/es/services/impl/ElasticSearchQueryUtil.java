@@ -56,8 +56,8 @@ public class ElasticSearchQueryUtil {
 	}
 
 	private QueryBuilder getRangeQueryBuilder(MapRangeQuery query) {
-		RangeQueryBuilder queryBuilder = QueryBuilders.rangeQuery(query.getKey()).from(query.getStart())
-				.to(query.getEnd());
+		RangeQueryBuilder queryBuilder = QueryBuilders.rangeQuery(query.getKey()).gte(query.getStart())
+				.lte(query.getEnd());
 		return query.getPath() != null ? getNestedQueryBuilder(query, queryBuilder) : queryBuilder;
 	}
 
