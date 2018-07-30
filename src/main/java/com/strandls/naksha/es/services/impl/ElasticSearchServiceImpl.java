@@ -341,6 +341,7 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 		SearchRequest searchRequest = new SearchRequest(index);
 		searchRequest.types(type);
 		searchRequest.source(sourceBuilder);
+		System.out.println(searchRequest);
 		SearchResponse searchResponse = client.search(searchRequest);
 
 		List<MapDocument> result = new ArrayList<>();

@@ -88,7 +88,7 @@ public class ElasticSearchDownloadServiceImpl extends ElasticSearchQueryUtil imp
 	private void downloadJson(SearchRequest searchRequest, ZipOutputStream out) throws IOException {
 
 		SearchResponse searchResponse = client.search(searchRequest);
-
+		System.out.println(searchResponse.toString());
 		do {
 
 			for (SearchHit hit : searchResponse.getHits().getHits())
@@ -138,21 +138,20 @@ public class ElasticSearchDownloadServiceImpl extends ElasticSearchQueryUtil imp
 	}
 
 	private SearchRequest getDownloadSearchRequest(MapSearchQuery query, String geoField, String index, String type) {
+		
+		MapSearchParams searchParams = query.getSearchParams();
 		BoolQueryBuilder boolQueryBuilder = getBoolQueryBuilder(query);
+		
+		
+		applyMapBounds(searchParams, boolQueryBuilder, geoField);
+		
 		SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 		sourceBuilder.query(boolQueryBuilder);
 		sourceBuilder.size(5000);
 		SearchRequest searchRequest = new SearchRequest(index);
 		searchRequest.types(type);
-		MapSearchParams searchParams = query.getSearchParams();
 		
-		if (searchParams.getMapBoundParams().getPolygon() != null ) {
-			MapBounds bounds = searchParams.getMapBoundParams().getBounds();
-			GeoBoundingBoxQueryBuilder setCorners = QueryBuilders.geoBoundingBoxQuery(geoField)
-					.setCorners(bounds.getTop(), bounds.getLeft(), bounds.getBottom(), bounds.getRight());
-			sourceBuilder.postFilter(setCorners);
-		}
-	
+		
 		searchRequest.source(sourceBuilder);
 		searchRequest.scroll(new TimeValue(60000));
 		System.out.println(searchRequest);
