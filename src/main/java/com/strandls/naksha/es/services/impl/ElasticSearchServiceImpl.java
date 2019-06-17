@@ -2,6 +2,7 @@ package com.strandls.naksha.es.services.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,7 +31,11 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.filter.Filter;
 import org.elasticsearch.search.aggregations.bucket.geogrid.GeoGridAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.missing.Missing;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
@@ -41,6 +46,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.strandls.naksha.es.ElasticSearchClient;
+import com.strandls.naksha.es.models.AggregationResponse;
 import com.strandls.naksha.es.models.MapDocument;
 import com.strandls.naksha.es.models.MapQueryResponse;
 import com.strandls.naksha.es.models.MapQueryStatus;
@@ -435,6 +441,39 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 		return querySearch(index, type, boolQuery, searchParams, geoAggregationField, geoAggegationPrecision);
 	}
 
+	@Override
+	public AggregationResponse aggregation(String index, String type, MapSearchQuery searchQuery,String filter) throws IOException {
+
+		logger.info("SEARCH for index: {}, type: {}", index, type);
+
+		MapSearchParams searchParams = searchQuery.getSearchParams();
+		BoolQueryBuilder masterBoolQuery = getBoolQueryBuilder(searchQuery);
+
+		AggregationBuilder aggregation = AggregationBuilders.terms(filter).field(filter).size(1000);
+		AggregationResponse aggregationResponse = new AggregationResponse() ;
+
+		if(filter.equals("name") || filter.equals("status")) {
+			AggregationResponse temp=null;
+			aggregation = AggregationBuilders.filter("available", QueryBuilders.existsQuery(filter));
+			temp = groupAggregation(index, type, aggregation, masterBoolQuery,filter);
+			HashMap<Object, Long> t = new HashMap<Object, Long>();
+			for (Map.Entry<Object, Long> entry : temp.getGroupAggregation().entrySet()) {
+				t.put(entry.getKey(), entry.getValue());
+			}
+			aggregation = AggregationBuilders.missing("miss").field(filter.concat(".keyword"));
+			temp = groupAggregation(index, type, aggregation, masterBoolQuery,filter);
+			for (Map.Entry<Object, Long> entry : temp.getGroupAggregation().entrySet()) {
+				t.put(entry.getKey(), entry.getValue());
+			}
+			aggregationResponse.setGroupAggregation(t);
+		}
+		else {
+			aggregationResponse = groupAggregation(index, type, aggregation, masterBoolQuery,filter);
+			
+		}
+		return aggregationResponse;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -550,5 +589,45 @@ public class ElasticSearchServiceImpl extends ElasticSearchQueryUtil implements 
 
 		return new MapDocument(XContentHelper.toString(aggregation));
 
+	}
+
+	private AggregationResponse groupAggregation(String index, String type, AggregationBuilder aggQuery,
+			QueryBuilder query, String filter) throws IOException {
+
+		if (aggQuery == null)
+			return null;
+
+		SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+		if (query != null)
+			sourceBuilder.query(query);
+		sourceBuilder.aggregation(aggQuery);
+
+		SearchRequest request = new SearchRequest(index);
+		request.types(type);
+		request.source(sourceBuilder);
+
+		SearchResponse response = client.search(request);
+
+		HashMap<Object, Long> groupMonth = new HashMap<Object, Long>();
+
+		if (filter.equals("name") || filter.equals("status")) {
+			Filter filterAgg = response.getAggregations().get("available");
+			if(filterAgg != null) {
+				groupMonth.put("available",  filterAgg.getDocCount());				
+			}
+			Missing missingAgg = response.getAggregations().get("miss");
+			if(missingAgg!= null) {
+				groupMonth.put("missing",missingAgg.getDocCount());
+			}
+			
+		} else {
+			Terms frommonth = response.getAggregations().get(filter);
+
+			for (Terms.Bucket entry : frommonth.getBuckets()) {
+				groupMonth.put(entry.getKey(), entry.getDocCount());
+			}
+		}
+		
+		return new AggregationResponse(groupMonth);
 	}
 }

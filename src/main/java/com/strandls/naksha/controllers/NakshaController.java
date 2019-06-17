@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.strandls.naksha.es.models.AggregationResponse;
 import com.strandls.naksha.es.models.MapBoundParams;
 import com.strandls.naksha.es.models.MapBounds;
 import com.strandls.naksha.es.models.MapDocument;
@@ -282,7 +283,22 @@ public class NakshaController {
 					Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
 		}
 	}
+	
+	@POST
+	@Path("/aggregation/{index}/{type}/{filter}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public AggregationResponse getAggregation(@PathParam("index") String index, @PathParam("type") String type,
+			@PathParam("filter") String filter, MapSearchQuery query) throws IOException {
+		MapSearchParams searchParams = query.getSearchParams();
+		MapBoundParams boundParams = searchParams.getMapBoundParams();
+		MapBounds bounds = null;
+		if (boundParams != null)
+			bounds = boundParams.getBounds();
 
+		return elasticSearchService.aggregation(index, type, query, filter);
+	}
+	
 	@POST
 	@Path("/search/{index}/{type}")
 	@Consumes(MediaType.APPLICATION_JSON)
