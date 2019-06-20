@@ -265,5 +265,5 @@ public interface ElasticSearchService {
 	 * @return
 	 * 		{@link AggregationResponse}
 	 */
-	AggregationResponse aggregation(String index,String type,MapSearchQuery serachQuery,String filter) throws IOException;
+	AggregationResponse aggregation(String index,String type,MapSearchQuery serachQuery,String geoAggregationField,String filter) throws IOException;
 }

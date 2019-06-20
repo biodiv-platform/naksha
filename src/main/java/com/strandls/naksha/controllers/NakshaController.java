@@ -288,15 +288,30 @@ public class NakshaController {
 	@Path("/aggregation/{index}/{type}/{filter}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public AggregationResponse getAggregation(@PathParam("index") String index, @PathParam("type") String type,
-			@PathParam("filter") String filter, MapSearchQuery query) throws IOException {
+	public AggregationResponse getAggregation(@PathParam("index") String index, 
+			@PathParam("type") String type,
+			@PathParam("filter") String filter, 
+			@QueryParam("geoAggregationField") String geoAggregationField,
+			MapSearchQuery query) throws IOException {
 		MapSearchParams searchParams = query.getSearchParams();
 		MapBoundParams boundParams = searchParams.getMapBoundParams();
 		MapBounds bounds = null;
 		if (boundParams != null)
 			bounds = boundParams.getBounds();
 
-		return elasticSearchService.aggregation(index, type, query, filter);
+		if (bounds != null && geoAggregationField == null)
+			throw new WebApplicationException(
+					Response.status(Status.BAD_REQUEST).entity("Location field not specified for bounds").build());
+
+		try {
+			return elasticSearchService.aggregation(index, type, query, geoAggregationField, filter);
+
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new WebApplicationException(
+					Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
+		}
+
 	}
 	
 	@POST
