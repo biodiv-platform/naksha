@@ -34,7 +34,7 @@ public class generate_geoserver_layers {
 	static String geoserver_data_dir_path = NakshaConfig.getString("tmpDirGeoserverPath");
 	static String namespace = "NamespaceInfoImpl-21400543:1604535a380:-7ffe";
 	static String datastore = "DataStoreInfoImpl--596c0b74:1604c3037af:-7fff";
-	static String dirname = NakshaConfig.getString("tmpDir.path")+"layersqls/";
+	static String dirname = NakshaConfig.getString("tmpDir.path") + "layersqls/";
 	static List<String> layers = new ArrayList<>();
 	static String tmp_dir_path = NakshaConfig.getString("tmpDir.path");
 	private static List<File> files = new ArrayList<>();
@@ -64,6 +64,7 @@ public class generate_geoserver_layers {
 
 		return files;
 	}
+
 	public static void geoserver_func(String dbname, String dbuser, String dbpassword)
 			throws IOException, ClassNotFoundException, SQLException {
 
@@ -142,9 +143,11 @@ public class generate_geoserver_layers {
 			create_featuretype_xml(tablename);
 			create_layer_xml(tablename);
 			System.out.println("mv " + tmp_dir_path + "layers/" + tablename + " " + geoserver_data_dir_path
-					+ "/workspaces/humeil/" + tablename);
-			pb.command("bash", "-c", "mv " + tmp_dir_path + "layers/" + tablename + " " + geoserver_data_dir_path
-					+ "/workspaces/humeil/humeil/");
+					+ "/workspaces/" + NakshaConfig.getString("workspace") + "/" + NakshaConfig.getString("datastore")
+					+ "/" + tablename);
+			pb.command("bash", "-c",
+					"mv " + tmp_dir_path + "layers/" + tablename + " " + geoserver_data_dir_path + "/workspaces/"
+							+ NakshaConfig.getString("workspace") + "/" + NakshaConfig.getString("datastore") + "/");
 			Process p = pb.start();
 
 		}
@@ -180,7 +183,7 @@ public class generate_geoserver_layers {
 		String featuretype_xml = String.format(featuretype_xml_tpl, tablename, tablename, tablename, layer_name,
 				layer_description, keywords, bbox, bbox);
 		System.out.println(featuretype_xml);
-		System.setProperty("user.dir", "/apps/biodiv/layers/" + tablename + "/");
+		System.setProperty("user.dir", "/apps/biodiv/map_upload_tmp/layers/" + tablename + "/");
 		File file = new File(tmp_dir_path + "/layers/" + tablename + "/featuretype.xml");
 		System.out.println(file.getAbsolutePath());
 		FileWriter fileWriter = new FileWriter(file);

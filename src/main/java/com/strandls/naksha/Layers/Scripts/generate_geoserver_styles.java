@@ -315,7 +315,7 @@ public class generate_geoserver_styles {
 			String layer_type, String col_type) throws SQLException, IOException {
 
 		System.out.println("start");
-		System.setProperty("user.dir", "/apps/biodiv/styles/" + tablename + "/");
+		System.setProperty("user.dir", "/apps/biodiv/map_upload_tmp/styles/" + tablename + "/");
 		String sld_filename = tablename + "_" + property_name + ".sld";
 		String json_filename = tablename + "_" + property_name + ".json";
 
@@ -393,7 +393,7 @@ public class generate_geoserver_styles {
 	private static void create_style_file_xml(String tablename, String property_name, String sld_filename,
 			String json_filename) throws IOException {
 
-		System.setProperty("user.dir", "/apps/biodiv/styles/" + tablename + "/");
+		System.setProperty("user.dir", "/apps/biodiv/map_upload_tmp/styles/" + tablename + "/");
 		String xml_filename = tablename + "_" + property_name + ".xml";
 		System.out.println(xml_filename);
 		String xml_id = tablename + "_" + property_name;
@@ -446,7 +446,7 @@ public class generate_geoserver_styles {
 		boolean isLastRule = false;
 		String paint_prop = null;
 
-		System.setProperty("user.dir", "/apps/biodiv/styles/" + tablename + "/");
+		System.setProperty("user.dir", "/apps/biodiv/map_upload_tmp/styles/" + tablename + "/");
 
 		List<String> color_scheme = color_schemes.get(ThreadLocalRandom.current().nextInt(1, color_schemes.size()));
 		String sld_filename = tablename + "_" + property_name + ".sld";
