@@ -404,8 +404,8 @@ public class Import_layers {
 			String sql1 = String.format("%s\n\n%s\n", c.stream().collect(Collectors.joining("\n")), layer_colcomments);
 			System.out.println(sql1);
 			String sql2 = "\nUPDATE " + layer_tablename
-					+ " SET __mlocate__layer_id = (SELECT currval('\"meta_layer_layer_id_seq\"')), __mlocate__status = 1, __mlocate__created_by = 1, __mlocate__created_date = now(), __mlocate__modified_by = 1, __mlocate__modified_date = now(), __mlocate__validated_by = 1, __mlocate__validated_date = now();\n\n";
-
+					+ " SET __mlocate__layer_id = (SELECT currval('\"Meta_Layer_layer_id_seq\"')), __mlocate__status = 1, __mlocate__created_by = 1, __mlocate__created_date = now(), __mlocate__modified_by = 1, __mlocate__modified_date = now(), __mlocate__validated_by = 1, __mlocate__validated_date = now();\n\n";
+			// SELECT currval('\"Meta_Layer_layer_id_seq\"');
 			sql2 = String.format("\n%s\n%s\n", Meta_Layer_sql, sql2);
 			System.out.println(sql2);
 
@@ -723,7 +723,7 @@ public class Import_layers {
 		imp.SQL_COLUMNS.put("DECIMAL", "float(24)");
 		imp.SQL_COLUMNS.put("DATE", "DATE");
 
-		layer_seq = getNextSeqFromDB("meta_layer_layer_id_seq", dbpassword) + 1;
+		layer_seq = getNextSeqFromDB("\\\"Meta_Layer_layer_id_seq\\\"", dbpassword) + 1;// +1
 		System.out.println(layer_seq);
 
 		String directoryName1 = PATH.concat("/layersqls");
@@ -766,22 +766,60 @@ public class Import_layers {
 
 	}
 
-	public static int getNextSeqFromDB(String SequenceName, String dbpassword) throws IOException {
-		String str = "";
-		str = String.format("PGPASSWORD=" + dbpassword
-				+ "  psql -h localhost  -d %s -U %s -t -c \"select pg_sequences.last_value  from pg_sequences where schemaname = 'public' and sequencename = %s\"",
-				DBNAME, DBUSER, SequenceName);
-		ProcessBuilder pb = new ProcessBuilder();
-		pb.command("bash", "-c", str);
-		Process process = pb.start();
-		BufferedReader stdInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
-		String s = null;
-		while ((s = stdInput.readLine()) != null) {
-			s = s.trim();
-			return Integer.parseInt(s);
-		}
+	public static int getNextVal(String SequenceName, String dbpassword) throws IOException {
 
-		return 0;
+		String s1 = String.format("PGPASSWORD=" + dbpassword
+				+ "  psql -h localhost  -d %s -U %s -t -c \"select nextval('\\\"Meta_Layer_layer_id_seq\\\"')\"",
+				DBNAME, DBUSER);
+
+		String s2 = String.format("PGPASSWORD=" + dbpassword
+				+ "  psql -h localhost  -d %s -U %s -t -c \"select setval('\\\"Meta_Layer_layer_id_seq\\\"' , (select nextval('\\\"Meta_Layer_layer_id_seq\\\"')-2))\"",
+				DBNAME, DBUSER);
+
+		String s3 = String.format("PGPASSWORD=" + dbpassword
+				+ "  psql -h localhost  -d %s -U %s -t -c \"select pg_sequences.last_value from pg_sequences where schemaname = 'public' and sequencename = %s\"",
+				DBNAME, DBUSER, SequenceName);
+		int val = 0;
+		String[] arr = { s1, s2, s3 };
+
+		for (String s : arr) {
+			System.out.println(s);
+			ProcessBuilder pb = new ProcessBuilder();
+			pb.command("bash", "-c", s);
+			Process process = pb.start();
+			BufferedReader stdInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			String s11 = null;
+			while ((s11 = stdInput.readLine()) != null) {
+				s11 = s11.trim();
+				val = Integer.parseInt(s11);
+				System.out.println(val);
+				break;
+			}
+			stdInput.close();
+		}
+		return val;
+	}
+
+	public static int getNextSeqFromDB(String SequenceName, String dbpassword) throws IOException {
+		int val = getNextVal(SequenceName, dbpassword);
+
+//		String str = "";
+//		str = String.format("PGPASSWORD=" + dbpassword
+//				+ "  psql -h localhost  -d %s -U %s -t -c \"select pg_sequences.last_value from pg_sequences where schemaname = 'public' and sequencename = %s\"",
+//				DBNAME, DBUSER, SequenceName);
+//		ProcessBuilder pb1 = new ProcessBuilder();
+//		pb1.command("bash", "-c", str);
+//		Process pb_process = pb1.start();
+//		BufferedReader stdInput1 = new BufferedReader(new InputStreamReader(pb_process.getInputStream()));
+//		System.out.println(stdInput1.readLine());
+//		String s12 = null;
+//		while ((s12 = stdInput1.readLine()) != null) {
+//			System.out.println(str);
+//			s12 = s12.trim();
+//			return Integer.parseInt(s12);
+//		}
+
+		return val;
 	}
 
 	public final void validate_column_types(String[] types) {
