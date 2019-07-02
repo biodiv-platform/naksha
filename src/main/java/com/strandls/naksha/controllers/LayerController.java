@@ -34,6 +34,13 @@ public class LayerController {
 
 	@Inject
 	LayerService layerService;
+	
+	@GET
+	@Path("ping")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String ping() {
+		return "pong";
+	}
 
 	@Path("/uploadshp")
 	@POST
