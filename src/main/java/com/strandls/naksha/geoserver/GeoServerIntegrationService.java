@@ -32,14 +32,8 @@ public class GeoServerIntegrationService {
 
 	private final Logger logger = LoggerFactory.getLogger(GeoServerIntegrationService.class);
 
-	/**
-	 * The context helps maintain a session across http requests.
-	 */
 	private HttpClientContext context;
 
-	/**
-	 * Base url of geoserver
-	 */
 	private final String baseUrl = NakshaConfig.getString("geoserver.url");
 
 	@Inject
@@ -57,10 +51,8 @@ public class GeoServerIntegrationService {
 	/**
 	 * Makes http get request to geoserver
 	 * 
-	 * @param uri
-	 *            the uri to hit
-	 * @param params
-	 *            the parameters with the url
+	 * @param uri    the uri to hit
+	 * @param params the parameters with the url
 	 * @return byte[] response
 	 */
 	public byte[] getRequest(String uri, List<NameValuePair> params) {

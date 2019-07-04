@@ -32,8 +32,8 @@ public class generate_geoserver_layers {
 	static String featuretype_xml_tpl;
 	static String layer_xml_tpl;
 	static String geoserver_data_dir_path = NakshaConfig.getString("tmpDirGeoserverPath");
-	static String namespace = "NamespaceInfoImpl-21400543:1604535a380:-7ffe";
-	static String datastore = "DataStoreInfoImpl--596c0b74:1604c3037af:-7fff";
+	static String namespace = "NamespaceInfoImpl--17cb25e:16ad50a3e73:-7ffd";// "NamespaceInfoImpl-21400543:1604535a380:-7ffe";
+	static String datastore = "DataStoreInfoImpl--e274543:16ae438aafe:-7ffe";// "DataStoreInfoImpl--596c0b74:1604c3037af:-7fff";
 	static String dirname = NakshaConfig.getString("tmpDir.path") + "layersqls/";
 	static List<String> layers = new ArrayList<>();
 	static String tmp_dir_path = NakshaConfig.getString("tmpDir.path");
@@ -282,10 +282,11 @@ public class generate_geoserver_layers {
 
 		ResultSet rs = stmt.executeQuery(colname_datatype_query);
 		while (rs.next()) {
-			if (rs.getString(1).startsWith("__malocate__") && rs.getString(2).startsWith("character")
-					|| Arrays.asList(cont_type).contains(rs.getString(2)))
-				;
-			styles = styles + "<style>\n  <id>" + tablename + "_" + rs.getString(1) + "</id>\n</style>";
+			System.out.println(rs.getString(1));
+			System.out.println(rs.getString(2));
+			if (!rs.getString(1).startsWith("__mlocate__")
+					&& (rs.getString(2).startsWith("character") || Arrays.asList(cont_type).contains(rs.getString(2))))
+				styles = styles + "<style>\n  <id>" + tablename + "_" + rs.getString(1) + "</id>\n</style>";
 
 		}
 		return styles;

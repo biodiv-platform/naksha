@@ -85,20 +85,20 @@ public class generate_geoserver_styles {
 
 	static String footer_tpl_mgl = "\n" + "]\n" + "}\n" + "}\n" + "}]\n" + "}";
 
-	static String header_tpl = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?\n"
+	static String header_tpl = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
 			+ "<StyledLayerDescriptor version=\"1.0.0\"\n"
 			+ "xsi:schemaLocation=\"http://www.opengis.net/sld StyledLayerDescriptor.xsd\"\n"
 			+ "xmlns=\"http://www.opengis.net/sld\"\n" + "xmlns:ogc=\"http://www.opengis.net/ogc\"\n"
 			+ "xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n"
-			+ "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" + "<NamedLayer\n"
-			+ "<Name>Attribute-based polygon</Name\n" + "<UserStyle>\n" + "<Title><![CDATA[%s]]></Title\n"
+			+ "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n" + "<NamedLayer>\n"
+			+ "<Name>Attribute-based polygon</Name>\n" + "<UserStyle>\n" + "<Title><![CDATA[%s]]></Title>\n"
 			+ "<FeatureTypeStyle>\n";
 
 	static String point_rule_tpl = "" + "<Rule>\n" + "<Name><![CDATA[%s]]></Name>\n" + "<Title><![CDATA[%s]]></Title>\n"
 			+ "<ogc:Filter>\n" + "<ogc:And>\n" + "<ogc:PropertyIsGreaterThanOrEqualTo>\n"
 			+ "<ogc:PropertyName>%s</ogc:PropertyName>\n" + "<ogc:Literal>%s</ogc:Literal>\n"
 			+ "</ogc:PropertyIsGreaterThanOrEqualTo>\n" + "<ogc:PropertyIsLessThan>\n"
-			+ "<ogc:PropertyName%s</ogc:PropertyName>\n" + "<ogc:Literal>%s</ogc:Literal>\n"
+			+ "<ogc:PropertyName>%s</ogc:PropertyName>\n" + "<ogc:Literal>%s</ogc:Literal>\n"
 			+ "</ogc:PropertyIsLessThan>\n" + "</ogc:And>\n" + "</ogc:Filter>\n" +
 
 			"<PointSymbolizer>\n" + "<Graphic>\n" + "<Mark>\n" + "<WellKnownName>circle</WellKnownName>\n" + "<Fill>\n"
@@ -123,7 +123,7 @@ public class generate_geoserver_styles {
 			+ "</CssParameter>\n" + " </Fill>\n" + "<Stroke>\n" + "<CssParameter name=\"stroke\">\n"
 			+ " #<ogc:Function name=\"env\">\n" + "<ogc:Literal>stroke</ogc:Literal>\n"
 			+ "<ogc:Literal>%s</ogc:Literal>\n" + "</ogc:Function>\n" + " </CssParameter>\n"
-			+ "<CssParameter name=\"stroke-width\">\n" + "<ogc:Function name=\"en\">\n"
+			+ "<CssParameter name=\"stroke-width\">\n" + "<ogc:Function name=\"env\">\n"
 			+ "<ogc:Literal>stroke-width</ogc:Literal>\n" + "<ogc:Literal>%s</ogc:Literal>\n" + "</ogc:Function>\n"
 			+ "</CssParameter>\n" + "</Stroke>\n" + "</PolygonSymbolizer>\n" + "</Rule>";
 
@@ -148,7 +148,7 @@ public class generate_geoserver_styles {
 			+ "<Title><![CDATA[%s]]></Title>\n" + "<ogc:Filter>\n" + "<ogc:PropertyIsEqualTo>\n"
 			+ "<ogc:PropertyName>%s</ogc:PropertyName>\n" + "<ogc:Literal><![CDATA[%s]]></ogc:Literal>\n"
 			+ " </ogc:PropertyIsEqualTo>\n" + "</ogc:Filter>\n" + "<PolygonSymbolizer>\n" + "<Fill>\n"
-			+ "<CssParameter name=\"fil\">\n" + "#<ogc:Function name=\"env\">\n" + "<ogc:Literal>%s</ogc:Literal>\n"
+			+ "<CssParameter name=\"fill\">\n" + "#<ogc:Function name=\"env\">\n" + "<ogc:Literal>%s</ogc:Literal>\n"
 			+ "<ogc:Literal>%s</ogc:Literal>\n" + "</ogc:Function>\n" + "</CssParameter>\n" + "</Fill>\n" + "<Stroke>\n"
 			+ "<CssParameter name=\"stroke\">\n" + "#<ogc:Function name=\"env\">\n"
 			+ "<ogc:Literal>stroke</ogc:Literal>\n" + "<ogc:Literal>%s</ogc:Literal>\n" + "</ogc:Function>\n"
@@ -331,6 +331,7 @@ public class generate_geoserver_styles {
 		File file_sld = new File(tmp_dir_path + "/styles/" + tablename + "/" + sld_filename);
 		FileWriter fileWriter1 = new FileWriter(file_sld);
 		fileWriter1.write(String.format(header_tpl, property_title));
+
 		File file_json = new File(tmp_dir_path + "/styles/" + tablename + "/" + json_filename);
 		FileWriter fileWriter2 = new FileWriter(file_json);
 
@@ -454,14 +455,14 @@ public class generate_geoserver_styles {
 
 		create_style_file_xml(tablename, property_name, sld_filename, json_filename);
 
-		File file_sld = new File(tmp_dir_path + "/styles/" + tablename + "/" + sld_filename);
+		File file_sld = new File(tmp_dir_path + "styles/" + tablename + "/" + sld_filename);
 		FileWriter fileWriter1 = new FileWriter(file_sld);
 		fileWriter1.write(String.format(header_tpl, property_title));
 
 		File file_json = new File(tmp_dir_path + "/styles/" + tablename + "/" + json_filename);
 		FileWriter fileWriter2 = new FileWriter(file_json);
 
-		fileWriter1.write(String.format(header_tpl, property_title));
+		// fileWriter2.write(String.format(header_tpl, property_title));
 
 		int size = get_bin_size(property_min, property_max, bincount);
 		double min_doub = Double.parseDouble(property_min);
@@ -499,7 +500,7 @@ public class generate_geoserver_styles {
 						1);
 				fileWriter1.write(rule);
 			} else if (layer_type.equals("POINT")) {
-				String rule = String.format(polygon_rule_tpl, rule_name, rule_name, property_name,
+				String rule = String.format(point_rule_tpl, rule_name, rule_name, property_name,
 						String.format("%s", mi), property_name, String.format("%s", mx), colr_code, color_hex, "e5e5e5",
 						2, 12);
 				fileWriter1.write(rule);

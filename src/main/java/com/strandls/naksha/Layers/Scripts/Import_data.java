@@ -6,6 +6,7 @@
 package com.strandls.naksha.Layers.Scripts;
 
 import static com.strandls.naksha.Layers.Scripts.Import_layers.main_func;
+import static com.strandls.naksha.Layers.Scripts.gen_geoserver_cache_conf.generate_cache;
 import static com.strandls.naksha.Layers.Scripts.generate_geoserver_layers.geoserver_func;
 import static com.strandls.naksha.Layers.Scripts.generate_geoserver_styles.generate_styles;
 
@@ -57,9 +58,10 @@ public class Import_data {
 		Import_layers imp = new Import_layers(dbname, dbuser, datapath, sql_file_name);
 		int end_res = main_func(imp, database, dbname, dbpassword, dbuser);
 		generate_geoserver_layers layer_obj = new generate_geoserver_layers();
-		generate_geoserver_styles styels_obj = new generate_geoserver_styles();
+		generate_geoserver_styles styles_obj = new generate_geoserver_styles();
 		generate_styles(dbname, dbuser, dbpassword);
 		geoserver_func(dbname, dbuser, dbpassword);
+		generate_cache(dbname, dbuser, dbpassword);
 		return end_res;
 	}
 

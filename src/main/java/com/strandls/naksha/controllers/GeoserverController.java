@@ -16,6 +16,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.w3c.dom.Document;
 
+import com.strandls.naksha.common.ApiConstants;
 import com.strandls.naksha.geoserver.GeoServerIntegrationService;
 import com.strandls.naksha.geoserver.GeoserverService;
 import com.strandls.naksha.geoserver.models.GeoserverLayerStyles;
@@ -27,7 +28,7 @@ import com.strandls.naksha.utils.Utils;
  * @author mukund
  *
  */
-@Path("geoserver")
+@Path(ApiConstants.GEOSERVER)
 public class GeoserverController {
 
 	@Inject
@@ -97,11 +98,10 @@ public class GeoserverController {
 	@GET
 	@Path("/legend/{layer}/{style}")
 	@Produces("image/png")
-	public Response fetchLegend(@PathParam("layer") String layer,
-			@PathParam("style") String style) {
+	public Response fetchLegend(@PathParam("layer") String layer, @PathParam("style") String style) {
 
 		String url = "wms";
-		
+
 		ArrayList<NameValuePair> params = new ArrayList<>();
 		params.add(new BasicNameValuePair("REQUEST", "GetLegendGraphic"));
 		params.add(new BasicNameValuePair("VERSION", "1.0.0"));
@@ -109,7 +109,7 @@ public class GeoserverController {
 		params.add(new BasicNameValuePair("transparent", "true"));
 		params.add(new BasicNameValuePair("LAYER", layer));
 		params.add(new BasicNameValuePair("style", style));
-		
+
 		byte[] file = service.getRequest(url, params);
 		return Response.ok(new ByteArrayInputStream(file)).build();
 	}
@@ -117,9 +117,7 @@ public class GeoserverController {
 	@GET
 	@Path("/gwc/service/tms/1.0.0/{layer}/{z}/{x}/{y}")
 	@Produces("application/x-protobuf")
-	public Response fetchTiles(@PathParam("layer") String layer,
-			@PathParam("z") String z,
-			@PathParam("x") String x,
+	public Response fetchTiles(@PathParam("layer") String layer, @PathParam("z") String z, @PathParam("x") String x,
 			@PathParam("y") String y) {
 
 		String url = "gwc/service/tms/1.0.0/" + layer + "@EPSG%3A900913@pbf/" + z + "/" + x + "/" + y + ".pbf";
