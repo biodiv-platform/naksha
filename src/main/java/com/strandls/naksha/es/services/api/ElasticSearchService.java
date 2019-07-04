@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import com.strandls.naksha.es.models.AggregationResponse;
 import com.strandls.naksha.es.models.MapDocument;
 import com.strandls.naksha.es.models.MapQueryResponse;
 import com.strandls.naksha.es.models.MapResponse;
@@ -252,4 +253,17 @@ public interface ElasticSearchService {
 	 */
 	MapDocument termsAggregation(String index, String type, String field, String subField, Integer size,
 			String locationField, MapSearchQuery query) throws IOException;
+	
+	/**
+	 * 
+	 * @param index
+	 *  	the index in which to search
+	 * @param type
+	 * 		the type in which to search
+	 * @param serachQuery
+	 * 		optional
+	 * @return
+	 * 		{@link AggregationResponse}
+	 */
+	AggregationResponse aggregation(String index,String type,MapSearchQuery serachQuery,String geoAggregationField,String filter) throws IOException;
 }
