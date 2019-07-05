@@ -64,7 +64,7 @@ public class generate_geoserver_styles {
 
 	static String header_tpl_mgl = "{\n" + "\"version\": 8,\n" + "\"sources\": {\n" + "\"%s\": {\n"
 			+ "\"type\": \"vector\",\n" + "\"scheme\": \"tms\",\n"
-			+ "\"tiles\": [\"/geoserver/gwc/service/tms/1.0.0/humeil:%s@EPSG%%3A900913@pbf/{z}/{x}/{y}.pbf\"]\n" + "}\n"
+			+ "\"tiles\": [\"/geoserver/gwc/service/tms/1.0.0/biodiv:%s@EPSG%%3A900913@pbf/{z}/{x}/{y}.pbf\"]\n" + "}\n"
 			+ "},\n" + "\"layers\": [{\n" + "\"id\":\"%s\",\n" + "\"type\":\"%s\",\n" + "\"source\":\"%s\",\n"
 			+ "\"source-layer\": \"%s\",\n" + "\"paint\": ";
 

@@ -74,7 +74,7 @@ public class LayerController {
 			int i = layerService.uploadShpLayer(shpInputStream, dbfInputStream, metadataInputStream, shxInputStream,
 					layerName);
 
-			return Response.status(Response.Status.OK).entity("data is inserted").build();
+			return Response.status(Response.Status.OK).entity("{\"responseCode\":"+i+", \"info\": \"1 = failure && 0 = Success\"}").build();
 
 		} catch (Exception e) {
 			throw new WebApplicationException(
