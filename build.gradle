@@ -43,7 +43,6 @@ dependencies {
 	compile "org.glassfish.jersey.media:jersey-media-json-jackson:2.25"
 	compile 'org.elasticsearch.client:elasticsearch-rest-high-level-client:6.0.1'
 	providedCompile "javax.servlet:javax.servlet-api:4.0.0"
-	compile group: 'com.sun.jersey', name: 'jersey-json', version: '1.19'
 	compile group: 'org.apache.commons', name: 'commons-configuration2', version: '2.2'
 	compile group: 'commons-lang', name: 'commons-lang', version: '2.6'
 	compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.3'
@@ -52,7 +51,6 @@ dependencies {
 	compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
 	compile group: 'javax.xml.parsers', name: 'jaxp-api', version: '1.4.5'
 	compile group:'com.google.inject', name:'guice', version:'4.1.0'
-	compile group: 'com.sun.jersey.contribs', name: 'jersey-multipart', version: '1.19'
 	compile group: 'org.javatuples', name: 'javatuples', version: '1.2'
 	compile group: 'org.glassfish.hk2', name: 'guice-bridge', version: '2.2.0-b14'
 	compile group: 'com.google.inject.extensions', name: 'guice-servlet', version: '4.2.0'
