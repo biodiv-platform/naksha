@@ -46,7 +46,7 @@ public class generate_geoserver_styles {
 			rule_mgl = String.format(line_rule_tpl_mgl, key, value);
 		}
 		if (lastRule == true) {
-			rule_mgl = rule_mgl.substring(0, rule_mgl.length());
+			rule_mgl = rule_mgl.substring(0, rule_mgl.length()-1);
 		}
 		return rule_mgl;
 	}
