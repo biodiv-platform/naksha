@@ -19,7 +19,7 @@ import com.strandls.naksha.NakshaConfig;
 
 public class gen_geoserver_cache_conf {
 
-	static String workspaceName = "humeil";
+	static String workspaceName = "biodiv";
 	static String header_xml_tpl = "<GeoServerTileLayer>\n" + "<id>LayerInfoImpl-%s</id>\n" + "<enabled>true</enabled>"
 			+ "<inMemoryCached>true</inMemoryCached>" + "<name>" + workspaceName + ":%s</name>";
 
