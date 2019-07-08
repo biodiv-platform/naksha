@@ -86,12 +86,25 @@ public class GeoserverController {
 	}
 
 	@GET
-	@Path("/thumbnails/{id}")
+	@Path("/thumbnails/{workspace}/{id}")
 	@Produces("image/gif")
-	public Response fetchThumbnail(@PathParam("id") String id) {
+	public Response fetchThumbnail(@PathParam("id") String id, @PathParam("workspace") String wspace,
+		@QueryParam("bbox") String para, @QueryParam("width") String width, @QueryParam("height") String height,
+		@QueryParam("srs") String srs) {
 
-		String url = "www/map_thumbnails/" + id;
-		byte[] file = service.getRequest(url, null);
+		ArrayList<NameValuePair> params = new ArrayList<>();
+		params.add(new BasicNameValuePair("request", "GetMap"));
+		params.add(new BasicNameValuePair("layers", id));
+		params.add(new BasicNameValuePair("service", "WMS"));
+		params.add(new BasicNameValuePair("version", "1.1.0"));
+		params.add(new BasicNameValuePair("bbox", para));
+		params.add(new BasicNameValuePair("width", width));
+		params.add(new BasicNameValuePair("height", height));
+		params.add(new BasicNameValuePair("srs", srs));
+		params.add(new BasicNameValuePair("format", "image%2Fgif"));
+
+		byte[] file = service.getRequest(wspace + "/wms", params);
+
 		return Response.ok(new ByteArrayInputStream(file)).build();
 	}
 
