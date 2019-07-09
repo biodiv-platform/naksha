@@ -1,9 +1,35 @@
 apply plugin: 'war'
 apply plugin: 'eclipse'
 apply plugin: 'eclipse-wtp'
+apply plugin: 'com.bmuschko.tomcat'
 
 repositories {
     jcenter()
+}
+dependencies {
+        def tomcatVersion = '8.5.27'
+
+        tomcat "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}",
+                   "org.apache.tomcat.embed:tomcat-embed-logging-juli:8.5.2",
+                   "org.apache.tomcat.embed:tomcat-embed-jasper:${tomcatVersion}"
+}
+
+buildscript {
+        repositories {
+                jcenter()
+        }
+        dependencies {
+                classpath 'com.bmuschko:gradle-tomcat-plugin:2.2.2'
+        }
+}
+
+tomcat {
+    httpPort = 8090
+    httpsPort = 8444
+    ajpPort = 8010
+    stopPort = 8082
+    //enableSSL = true
+    contextPath = 'naksha'
 }
 
 dependencies {
@@ -18,10 +44,14 @@ dependencies {
 	compile 'org.elasticsearch.client:elasticsearch-rest-high-level-client:6.0.1'
 	providedCompile "javax.servlet:javax.servlet-api:4.0.0"
 	compile group: 'org.apache.commons', name: 'commons-configuration2', version: '2.2'
+	compile group: 'commons-lang', name: 'commons-lang', version: '2.6'
 	compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.3'
+	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
 	compile group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.4.8'
+	compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
 	compile group: 'javax.xml.parsers', name: 'jaxp-api', version: '1.4.5'
 	compile group:'com.google.inject', name:'guice', version:'4.1.0'
+	compile group: 'org.javatuples', name: 'javatuples', version: '1.2'
 	compile group: 'org.glassfish.hk2', name: 'guice-bridge', version: '2.2.0-b14'
 	compile group: 'com.google.inject.extensions', name: 'guice-servlet', version: '4.2.0'
 	compile group: 'org.postgresql', name: 'postgresql', version: '42.2.1'

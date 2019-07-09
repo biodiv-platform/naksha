@@ -7,8 +7,6 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Enumeration;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.servlet.ServletContextEvent;
 
 import org.apache.http.HttpHost;
@@ -21,13 +19,13 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceServletContextListener;
 import com.google.inject.servlet.ServletModule;
+import com.strandls.naksha.Upload.layers.LayerUploadModule;
 import com.strandls.naksha.binning.services.BinningModule;
 import com.strandls.naksha.dao.DAOFactory;
 import com.strandls.naksha.dao.jdbc.DAOModule;
 import com.strandls.naksha.es.ElasticSearchClient;
 import com.strandls.naksha.es.services.impl.ESModule;
 import com.strandls.naksha.geoserver.GeoserverModule;
-import com.strandls.naksha.layers.LayersModule;
 
 public class NakshaServeletContextListener extends GuiceServletContextListener {
 
@@ -45,23 +43,20 @@ public class NakshaServeletContextListener extends GuiceServletContextListener {
 
 			@Override
 			protected void configureServlets() {
-				
+
 				// Start Geoserver related configurations --------------------------------------
 				try {
 
 					PoolingHttpClientConnectionManager manager = new PoolingHttpClientConnectionManager();
 					manager.setDefaultMaxPerRoute(MAX_CONNECTIONS_PER_ROUTE);
 					bind(PoolingHttpClientConnectionManager.class).toInstance(manager);
-					
-					ScriptEngine engine = new ScriptEngineManager().getEngineByName("python");
-					bind(ScriptEngine.class).toInstance(engine);
 
 					Class.forName("org.postgresql.Driver");
 					DAOFactory daoFactory = DAOFactory.getInstance();
 					Connection connection = daoFactory.getConnection();
 					bind(Connection.class).toInstance(connection);
 
-				}
+				} 
 				catch (ClassNotFoundException e) {
 					logger.error("Error finding postgresql driver.", e);
 				} catch (SQLException e) {
@@ -75,7 +70,7 @@ public class NakshaServeletContextListener extends GuiceServletContextListener {
 						RestClient.builder(HttpHost.create(NakshaConfig.getString("es.url"))));
 				bind(ElasticSearchClient.class).toInstance(esClient);
 			}
-		}, new ESModule(), new BinningModule(), new GeoserverModule(), new LayersModule(), new DAOModule());
+		}, new ESModule(), new BinningModule(), new GeoserverModule(), new LayerUploadModule(), new DAOModule());
 	}
 
 	@Override
@@ -96,21 +91,21 @@ public class NakshaServeletContextListener extends GuiceServletContextListener {
 			httpConnectionManger.close();
 		}
 
-	    ClassLoader cl = Thread.currentThread().getContextClassLoader();
-	    Enumeration<Driver> drivers = DriverManager.getDrivers();
-	    while (drivers.hasMoreElements()) {
-	        Driver driver = drivers.nextElement();
-	        if (driver.getClass().getClassLoader() == cl) {
-	            try {
-	                logger.info("Deregistering JDBC driver {}", driver);
-	                DriverManager.deregisterDriver(driver);
-	            } catch (SQLException ex) {
-	                logger.error("Error deregistering JDBC driver {}", driver, ex);
-	            }
-	        } else {
-	            logger.trace("Not deregistering JDBC driver {} as it does not belong to this webapp's ClassLoader", driver);
-	        }
-	    }
+		ClassLoader cl = Thread.currentThread().getContextClassLoader();
+		Enumeration<Driver> drivers = DriverManager.getDrivers();
+		while (drivers.hasMoreElements()) {
+			Driver driver = drivers.nextElement();
+			if (driver.getClass().getClassLoader() == cl) {
+				try {
+					logger.info("Deregistering JDBC driver {}", driver);
+					DriverManager.deregisterDriver(driver);
+				} catch (SQLException ex) {
+					logger.error("Error deregistering JDBC driver {}", driver, ex);
+				}
+			} else {
+				logger.trace("Not deregistering JDBC driver {} as it does not belong to this webapp's ClassLoader", driver);
+			}
+		}
 
 		super.contextDestroyed(sce);
 	}
