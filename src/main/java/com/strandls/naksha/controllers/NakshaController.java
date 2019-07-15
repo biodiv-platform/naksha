@@ -57,6 +57,13 @@ public class NakshaController {
 
 	private final Logger logger = LoggerFactory.getLogger(NakshaController.class);
 
+	@GET
+	@Path("ping")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String getPong() {
+		return "pong";
+	}
+	
 	@POST
 	@Path("/data/{index}/{type}/{documentId}")
 	@Consumes(MediaType.APPLICATION_JSON)

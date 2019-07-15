@@ -598,7 +598,7 @@ public class Import_layers {
 		instream = new FileInputStream(f1);
 		outstream = new FileOutputStream(f2);
 
-		byte[] buffer = new byte[1000000000];
+		byte[] buffer = new byte[1000000];
 
 		int length;
 
