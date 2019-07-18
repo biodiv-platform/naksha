@@ -104,8 +104,9 @@ public class gen_geoserver_cache_conf {
 		Class.forName("org.postgresql.Driver");
 
 		try {
-
-			connection = DriverManager.getConnection("jdbc:postgresql://127.0.0.1:5432/" + db, user, pass);// +db, user
+			String dbhost = NakshaConfig.getString("geoserver.dbhost");
+			String dbport = NakshaConfig.getString("geoserver.dbport");
+			connection = DriverManager.getConnection("jdbc:postgresql://" + dbhost + ":" + dbport + "/" + db, user, pass);// +db, user
 																											// ,pass
 
 		} catch (SQLException e) {
