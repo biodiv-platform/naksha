@@ -48,6 +48,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import com.strandls.naksha.NakshaConfig;
 
 /**
  *
@@ -767,17 +768,17 @@ public class Import_layers {
 	}
 
 	public static int getNextVal(String SequenceName, String dbpassword) throws IOException {
-
+		String dbhost = NakshaConfig.getString("geoserver.dbhost");
 		String s1 = String.format("PGPASSWORD=" + dbpassword
-				+ "  psql -h localhost  -d %s -U %s -t -c \"select nextval('\\\"Meta_Layer_layer_id_seq\\\"')\"",
+				+ "  psql -h " + dbhost + "  -d %s -U %s -t -c \"select nextval('\\\"Meta_Layer_layer_id_seq\\\"')\"",
 				DBNAME, DBUSER);
 
 		String s2 = String.format("PGPASSWORD=" + dbpassword
-				+ "  psql -h localhost  -d %s -U %s -t -c \"select setval('\\\"Meta_Layer_layer_id_seq\\\"' , (select nextval('\\\"Meta_Layer_layer_id_seq\\\"')-2))\"",
+				+ "  psql -h " + dbhost + "  -d %s -U %s -t -c \"select setval('\\\"Meta_Layer_layer_id_seq\\\"' , (select nextval('\\\"Meta_Layer_layer_id_seq\\\"')-2))\"",
 				DBNAME, DBUSER);
 
 		String s3 = String.format("PGPASSWORD=" + dbpassword
-				+ "  psql -h localhost  -d %s -U %s -t -c \"select pg_sequences.last_value from pg_sequences where schemaname = 'public' and sequencename = %s\"",
+				+ "  psql -h " + dbhost + "  -d %s -U %s -t -c \"select pg_sequences.last_value from pg_sequences where schemaname = 'public' and sequencename = %s\"",
 				DBNAME, DBUSER, SequenceName);
 		int val = 0;
 		String[] arr = { s1, s2, s3 };

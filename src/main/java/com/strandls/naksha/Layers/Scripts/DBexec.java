@@ -7,6 +7,7 @@ package com.strandls.naksha.Layers.Scripts;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import com.strandls.naksha.NakshaConfig;
 
 /**
  *
@@ -16,8 +17,9 @@ public class DBexec {
 	public static int main_func_generation(String sql_fl, String dbname, String dbpassword, String dbuser) {
 		try {
 			String password = "hum123";
+			String dbhost = NakshaConfig.getString("geoserver.dbhost");
 			ProcessBuilder builder = new ProcessBuilder("bash", "-c", "PGPASSWORD=" + dbpassword
-					+ " psql -h localhost -d " + dbname + " -a -U " + dbuser + " -f " + sql_fl);
+					+ " psql -h " + dbhost + " -d " + dbname + " -a -U " + dbuser + " -f " + sql_fl);
 			Process process = builder.start();
 			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 			System.out.println(process);
