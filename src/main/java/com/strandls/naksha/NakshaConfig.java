@@ -20,9 +20,9 @@ public class NakshaConfig {
 	public static String getString(String key) {
 		Configuration config;
 		Configurations configs = new Configurations();
-		String configFile = System.getenv("NAKSHA_CONFIG_PATH");
+		String configFile = null;
 		try {
-			config = configs.properties(new File(configFile != null ? configFile : "config.properties"));
+			config = configs.properties(new File("/home/osboxes/git/naksha/src/main/resources/config.properties"));
 			return config.getString(key);
 		} catch (ConfigurationException cex) {
 			logger.error("Error while reading configuration. Message {}", cex.getMessage());

@@ -1,6 +1,9 @@
 package com.strandls.naksha.controllers;
 
 import java.io.InputStream;
+import java.util.Date;
+import java.sql.Timestamp;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -27,6 +30,8 @@ public class LayerController {
 
 	@Inject
 	LayerUploadService layerService;
+
+	@Inject
 	GeoServerIntegrationService service;
 
 	@POST
@@ -76,8 +81,10 @@ public class LayerController {
 			int i = layerService.uploadShpLayer(shpInputStream, dbfInputStream, metadataInputStream, shxInputStream,
 					layerName);
 			
-			// Waiting for disk files to be created then reload layers 
-			Thread.sleep(5000);
+			// Waiting for disk files to be created then reload layers
+			System.out.println("sleeping!!"+new Timestamp(new Date().getTime()));
+			TimeUnit.SECONDS.sleep(5);
+			System.out.println("awake!!"+new Timestamp(new Date().getTime()));
 			service.getRequest("/rest/reload", null, "POST");
 
 			return Response.status(Response.Status.OK).entity("{\"responseCode\":"+i+", \"info\": \"1 = failure && 0 = Success\"}").build();
