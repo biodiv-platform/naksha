@@ -82,9 +82,7 @@ public class LayerController {
 					layerName);
 			
 			// Waiting for disk files to be created then reload layers
-			System.out.println("sleeping!!"+new Timestamp(new Date().getTime()));
 			TimeUnit.SECONDS.sleep(5);
-			System.out.println("awake!!"+new Timestamp(new Date().getTime()));
 			service.getRequest("/rest/reload", null, "POST");
 
 			return Response.status(Response.Status.OK).entity("{\"responseCode\":"+i+", \"info\": \"1 = failure && 0 = Success\"}").build();
