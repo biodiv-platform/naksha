@@ -16,6 +16,7 @@ import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 
 import com.strandls.naksha.Upload.layers.LayerUploadService;
 import com.strandls.naksha.common.ApiConstants;
+import com.strandls.naksha.geoserver.GeoServerIntegrationService;
 
 /**
  * 
@@ -26,6 +27,7 @@ public class LayerController {
 
 	@Inject
 	LayerUploadService layerService;
+	GeoServerIntegrationService service;
 
 	@POST
 	@Path(ApiConstants.UPLOADSHP)
@@ -73,6 +75,10 @@ public class LayerController {
 
 			int i = layerService.uploadShpLayer(shpInputStream, dbfInputStream, metadataInputStream, shxInputStream,
 					layerName);
+			
+			// Waiting for disk files to be created then reload layers 
+			Thread.sleep(5000);
+			service.getRequest("/rest/reload", null, "POST");
 
 			return Response.status(Response.Status.OK).entity("{\"responseCode\":"+i+", \"info\": \"1 = failure && 0 = Success\"}").build();
 
