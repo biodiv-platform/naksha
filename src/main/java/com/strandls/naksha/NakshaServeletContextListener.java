@@ -1,6 +1,5 @@
 package com.strandls.naksha;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
@@ -9,9 +8,7 @@ import java.util.Enumeration;
 
 import javax.servlet.ServletContextEvent;
 
-import org.apache.http.HttpHost;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.elasticsearch.client.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,11 +17,8 @@ import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceServletContextListener;
 import com.google.inject.servlet.ServletModule;
 import com.strandls.naksha.Upload.layers.LayerUploadModule;
-import com.strandls.naksha.binning.services.BinningModule;
 import com.strandls.naksha.dao.DAOFactory;
 import com.strandls.naksha.dao.jdbc.DAOModule;
-import com.strandls.naksha.es.ElasticSearchClient;
-import com.strandls.naksha.es.services.impl.ESModule;
 import com.strandls.naksha.geoserver.GeoserverModule;
 
 public class NakshaServeletContextListener extends GuiceServletContextListener {
@@ -66,25 +60,14 @@ public class NakshaServeletContextListener extends GuiceServletContextListener {
 				// ------------------------ End Geoserver related configurations
 
 				bind(NakshaResponseFilter.class);
-				ElasticSearchClient esClient = new ElasticSearchClient(
-						RestClient.builder(HttpHost.create(NakshaConfig.getString("es.url"))));
-				bind(ElasticSearchClient.class).toInstance(esClient);
 			}
-		}, new ESModule(), new BinningModule(), new GeoserverModule(), new LayerUploadModule(), new DAOModule());
+		}, new GeoserverModule(), new LayerUploadModule(), new DAOModule());
 	}
 
 	@Override
 	public void contextDestroyed(ServletContextEvent sce) {
 		Injector injector = (Injector) sce.getServletContext().getAttribute(Injector.class.getName());
 
-		ElasticSearchClient elasticSearchClient = injector.getInstance(ElasticSearchClient.class);
-		if (elasticSearchClient != null) {
-			try {
-				elasticSearchClient.close();
-			} catch (IOException e) {
-				logger.error("Error closing elasticsearch client. ", e);
-			}
-		}
 
 		PoolingHttpClientConnectionManager httpConnectionManger = injector.getInstance(PoolingHttpClientConnectionManager.class);
 		if (httpConnectionManger != null) {

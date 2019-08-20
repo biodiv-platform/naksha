@@ -1,35 +1,9 @@
 apply plugin: 'war'
 apply plugin: 'eclipse'
 apply plugin: 'eclipse-wtp'
-apply plugin: 'com.bmuschko.tomcat'
 
 repositories {
     jcenter()
-}
-dependencies {
-        def tomcatVersion = '8.5.27'
-
-        tomcat "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}",
-                   "org.apache.tomcat.embed:tomcat-embed-logging-juli:8.5.2",
-                   "org.apache.tomcat.embed:tomcat-embed-jasper:${tomcatVersion}"
-}
-
-buildscript {
-        repositories {
-                jcenter()
-        }
-        dependencies {
-                classpath 'com.bmuschko:gradle-tomcat-plugin:2.2.2'
-        }
-}
-
-tomcat {
-    httpPort = 8090
-    httpsPort = 8444
-    ajpPort = 8010
-    stopPort = 8082
-    //enableSSL = true
-    contextPath = 'naksha'
 }
 
 dependencies {
