@@ -1,4 +1,4 @@
-# Naksha API (DEPRECATED)
+# Naksha  (DEPRECATED) currently using naksha-api
 
 ### Instructions for eclipse
 
